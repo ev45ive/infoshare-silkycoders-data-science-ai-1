@@ -2767,3 +2767,415 @@ Gotowe! ✅ Dodałem sekcję **CHANGELOG** do obu plików:
 2. [`jupyter-dokumentacja-i-przykłady.md`](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/docs/jupyter-dokumentacja-i-przykłady.md) — CHANGELOG na górze
 
 Zespół Data Science może teraz śledzić historię zmian dokumentów! 📊
+
+---
+
+_**User (2026-11-09 10:04:55Z)**_
+
+znasz dobre praktyki promptowania - wydobądź z tej rozmowy strukturę i najważniejsze cechy dobrego prompta z krótkim wyjaśnieniem dlaczego,  abym na przyszłość mógł go reużywać, prosto czytelnie w puntach tu na czasie
+
+---
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:04:58Z)**_
+
+<think><details><summary>Thought Process</summary>
+Użytkownik chce, abym wydobył z naszej rozmowy strukturę i najważniejsze cechy dobrego prompta, z krótkim wyjaśnieniem dlaczego, w punktach, na teraz.
+
+Najpierw powiniem przeczytać ten tagged file, aby zobaczyć co tam jest.
+</details></think>
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:04:58Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="view"><details>
+<summary>Tool use: **view**</summary>
+
+view the file at /home/teamsharq/.config/Code/agentSessionData/dd6aabc8-3b94-4ba7-bc1a-dc5d7ea591ad/attachments/de71c7fc-0ac0-42f9-a97d-3461eca1a874/file_Untitled-1.txt.
+
+**Input:**
+
+- path: `/home/teamsharq/.config/Code/agentSessionData/dd6aabc8-3b94-4ba7-bc1a-dc5d7ea591ad/attachments/de71c7fc-0ac0-42f9-a97d-3461eca1a874/file_Untitled-1.txt`
+
+**Result:**
+
+```
+
+Context - focus
+
+Rola - dla kogo
+
+Cel - co gdy instrukcje sa niejasne/przecza itd-
+
+instrukcje
+- zo zrobic krok po kroku
+
+zasady
+- co wolno co nie wolno, jak to robic
+
+Format/Styl:
+- jak ma wylgadac
+
+
+Examples
+- szablon, przykład, kontrprzykłąd
+```
+</details></tool-use>
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:05:21Z)**_
+
+<think><details><summary>Thought Process</summary>
+Aha, ten file ma struktura promptu! To jest bardzo pomocne. Użytkownik już ma zaczytek struktury. Teraz chce, żebym wydobył z naszej rozmowy najlepsze praktyki promptowania - strukturę i cechy dobrego prompta, z wyjaśnieniami dlaczego, w punktach.
+
+Przeanalizujmy naszą rozmowę:
+
+1. **Rola** - "Jesteś doświadczonym senior data-scientist pracujący w Nordvik" - Określenie roli daje kontekst, jaki ekspert ma odpowiadać, jak myśli, jakie ma doświadczenie. DLACZEGO: AI zaczyna od perspektywy tej osoby, bardziej realistyczne odpowiedzi.
+
+2. **Cel** - "Dokumentacja formatu i struktury dla typowych zapytań..." - Jasny cel co ma być wynikiem. DLACZEGO: AI wie co robić, nie trafia w pustkę.
+
+3. **Instrukcje** - "przygotuj przykładowe zapytania SQL, oraz przykładowy notebook jupyter" - Konkretne kroki co należy zrobić. DLACZEGO: Bez instrukcji AI może robić coś zupełnie innego.
+
+4. **Zasady** - "używaj tylko narzędzi do czytania plików, nie czytaj datasets - są duże, nie czytaj SQL w tym projekcie" - Ograniczenia, co jest dozwolone, co nie. DLACZEGO: Chroni przed wychodzeniem poza zakres, niepotrzebnym czytaniem, kostami.
+
+5. **Format** - "dokument w ./docs/przykłady-dokumentacji-sql-jupyter.md" - Konkretna lokalizacja, plik, format wyjścia. 
+DLACZEGO: Wiadomo dokładnie co i gdzie ma być dostarczone.
+
+Dalej widzę kontekst biznesowy jako osobny element - "luźnie inspirowany kontekst biznesowy Nordvik w przykładach" nadaje przykładom realizm i praktyczność zamiast generycznych treści.
+
+Potem pojawiła się separacja - prośba o rozdzielenie na 2 pliki, co daje modularność i czytelność, ułatwiając ponowne wykorzystanie poszczególnych części.
+
+Ostatni element to iteracja - dodanie CHANGELOG pokazuje mechanizm ulepszania przez kolejne kroki, dzięki czemu projekt staje się coraz bardziej kompletny.
+
+Teraz mam zebrane elementy, z których mogę wydobyć strukturę dobrego prompta wraz z wyjaśnieniami - najlepiej w formie punktów: szablon plus uzasadnienie dla każdego.
+</details></think>
+
+Świetnie się zastanowiłeś! Oto struktura **dobrego prompta** wyekstrahowana z naszej rozmowy:
+
+---
+
+## 📋 SZABLON PROMPTA NA PRZYSZŁOŚĆ
+
+### 1. **ROLA** (Context - for whom)
+```
+"Jesteś [zawód + seniority] pracujący w [organizacja]"
+```
+**Dlaczego?** → AI zaczyna z perspektywy eksperta, którego ekspertyzę masz. Tworzy realistyczne, trafne odpowiedzi zamiast generycznych.
+
+---
+
+### 2. **CEL** (What output)
+```
+"Cel: [konkretny efekt biznesowy, nie techniczny]"
+```
+**Dlaczego?** → AI wie **co dostarczyć**, nie trafia w pustkę. Cel != szczegóły implementacji.
+
+---
+
+### 3. **INSTRUKCJE** (Step by step)
+```
+"Instrukcje:
+- zrób X, następnie Y
+- uwzględnij Z"
+```
+**Dlaczego?** → Sekwencja kroków daje jasny plan działania. Bez instrukcji AI może robić to źle lub nie po kolei.
+
+---
+
+### 4. **ZASADY** (Constraints & guardrails)
+```
+"Zasady:
+- używaj tylko narzędzi A i B
+- nie czytaj dużych plików
+- nie wychodzisz poza zakres X"
+```
+**Dlaczego?** → **Chroni od błędów**: kosztownych operacji, czytania niepotrzebnych danych, wychodzenia poza scope. Oszczędza tokeny i czas.
+
+---
+
+### 5. **FORMAT/STYL** (Output shape)
+```
+"Format: dokument .md w ./docs/
+- sekcje markdown
+- kody SQL w blokach ```sql"
+```
+**Dlaczego?** → Wiadomo **dokładnie co dostaniesz**. Unika niespodziewanych formatów (DOCX zamiast MD, kod nie w bloku, itd).
+
+---
+
+### 6. **KONTEKST BIZNESOWY** (Background knowledge)
+```
+"Inspiracja: Nordvik = sieć mody, 5 sklepów, ONLINE, 
+przychód 78% STORE / 22% ONLINE, zwroty 4% / 18%"
+```
+**Dlaczego?** → Przykłady są **konkretne i stosowne**, nie abstrakcyjne. Przykład zwrotów 18% dla ONLINE brzmi realistycznie dla branży (nie generycy 5%).
+
+---
+
+### 7. **ITERACJA** (Refinement loop)
+```
+Druga wiadomość: "rozdziel na 2 pliki - osobno SQL, osobno Jupyter"
+Trzecia: "dodaj CHANGELOG..."
+```
+**Dlaczego?** → **Szybkie iteracje bez restartu**. Ulepszanie przez feedback zamiast generowania od nowa. AI ma kontekst poprzednich krań.
+
+---
+
+## 🎯 CHECKLIST: Czy Twój prompt jest dobry?
+
+- ✅ **Rola** — Jasne kim jestem / czym się zajmuję
+- ✅ **Cel** — Wiem co chcę dostać (biznesowo, nie technicznie)
+- ✅ **Instrukcje** — Mam plan kroków, nie zamieszanie
+- ✅ **Zasady** — Wiem co jest **zakazane** (chroni i oszczędza)
+- ✅ **Format** — Dokładnie gdzie i jak ma być kod/dokument
+- ✅ **Kontekst** — Kolej przykłady dla branży, nie ogólnik
+- ✅ **Zgłoszenie** — [#ticket/ref] dla śledzenia (opcjonalnie)
+
+---
+
+## 📌 Wzorzec na szybko:
+
+```markdown
+Rola: [kim jestem, doświadczenie]
+
+Cel: [CO mam dostać, business outcome]
+
+Instrukcje:
+- Krok 1
+- Krok 2
+
+Zasady:
+- używaj tylko [narzędzia A, B]
+- nie czytaj [co nie wolno]
+- nie rób [limity/excludes]
+
+Format: [gdzie i jak: .md, SQL block, etc]
+
+Kontekst: [branża, założenia biznesowe, przykłady realne]
+```
+
+---
+
+## 💡 Dlaczego to działa?
+
+**Bez tego:** "Wygoneruj dokumentację" → AI zgaduje, pali tokeny, trafia obok  
+**Z tym:** AI ma mapę mapy, wiadomy kierunek, oszczędza i trafi 🎯
+
+---
+
+**Zapisz sobie ten szablon — będzie działać na każdy prompt!** 👍
+
+---
+
+_**User (2026-11-09 10:09:02Z)**_
+
+zapisz verbatim do ./notatki/
+
+---
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:09:06Z)**_
+
+<think><details><summary>Thought Process</summary>
+Użytkownik chce, aby zapisać verbatim (dokładnie) strukturę prompta do folderu ./notatki/
+
+Trzeba:
+1. Najpierw sprawdzić czy foldier ./notatki/ istnieje
+2. Jeśli nie istnieje, należy go utworzyć
+3. Zapisać dokument z szablonami promptów
+
+Katalog roboczy to: /home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1
+
+Zatem ./notatki/ to: /home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/notatki/
+
+Sprawdzę czy istnieje foldier.
+</details></think>
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:09:06Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="bash"><details>
+<summary>Tool use: **bash**</summary>
+
+Check if notatki folder exists
+
+```bash
+ls -la /home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/ | grep notatki
+```
+
+**Result:**
+
+```text
+
+<shellId: 24 completed with exit code 1>
+```
+
+Exit code: 1
+</details></tool-use>
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:09:08Z)**_
+
+<think><details><summary>Thought Process</summary>
+Folder notatki nie istnieje, zatem trzeba go utworzyć.
+</details></think>
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:09:20Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="bash"><details>
+<summary>Tool use: **bash**</summary>
+
+Create notatki folder
+
+```bash
+mkdir -p /home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/notatki
+```
+
+**Result:**
+
+```text
+
+<shellId: 25 completed with exit code 0>
+```
+</details></tool-use>
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:09:36Z)**_
+
+<think><details><summary>Thought Process</summary>
+Teraz muszę zapisać dokument z szablonami promptów. Zapiszę go verbatim (dokładnie jak pokazałem wcześniej).
+</details></think>
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:09:36Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="create"><details>
+<summary>Tool use: **create**</summary>
+
+create a new file at /home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/notatki/szablon-dobrego-prompta.md.
+
+Path: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/notatki/szablon-dobrego-prompta.md`
+
+````markdown
+# 📋 SZABLON PROMPTA NA PRZYSZŁOŚĆ
+
+## 1. **ROLA** (Context - for whom)
+```
+"Jesteś [zawód + seniority] pracujący w [organizacja]"
+```
+**Dlaczego?** → AI zaczyna z perspektywy eksperta, którego ekspertyzę masz. Tworzy realistyczne, trafne odpowiedzi zamiast generycznych.
+
+---
+
+## 2. **CEL** (What output)
+```
+"Cel: [konkretny efekt biznesowy, nie techniczny]"
+```
+**Dlaczego?** → AI wie **co dostarczyć**, nie trafia w pustkę. Cel != szczegóły implementacji.
+
+---
+
+## 3. **INSTRUKCJE** (Step by step)
+```
+"Instrukcje:
+- zrób X, następnie Y
+- uwzględnij Z"
+```
+**Dlaczego?** → Sekwencja kroków daje jasny plan działania. Bez instrukcji AI może robić to źle lub nie po kolei.
+
+---
+
+## 4. **ZASADY** (Constraints & guardrails)
+```
+"Zasady:
+- używaj tylko narzędzi A i B
+- nie czytaj dużych plików
+- nie wychodzisz poza zakres X"
+```
+**Dlaczego?** → **Chroni od błędów**: kosztownych operacji, czytania niepotrzebnych danych, wychodzenia poza scope. Oszczędza tokeny i czas.
+
+---
+
+## 5. **FORMAT/STYL** (Output shape)
+```
+"Format: dokument .md w ./docs/
+- sekcje markdown
+- kody SQL w blokach ```sql"
+```
+**Dlaczego?** → Wiadomo **dokładnie co dostaniesz**. Unika niespodziewanych formatów (DOCX zamiast MD, kod nie w bloku, itd).
+
+---
+
+## 6. **KONTEKST BIZNESOWY** (Background knowledge)
+```
+"Inspiracja: Nordvik = sieć mody, 5 sklepów, ONLINE, 
+przychód 78% STORE / 22% ONLINE, zwroty 4% / 18%"
+```
+**Dlaczego?** → Przykłady są **konkretne i stosowne**, nie abstrakcyjne. Przykład zwrotów 18% dla ONLINE brzmi realistycznie dla branży (nie generycy 5%).
+
+---
+
+## 7. **ITERACJA** (Refinement loop)
+```
+Druga wiadomość: "rozdziel na 2 pliki - osobno SQL, osobno Jupyter"
+Trzecia: "dodaj CHANGELOG..."
+```
+**Dlaczego?** → **Szybkie iteracje bez restartu**. Ulepszanie przez feedback zamiast generowania od nowa. AI ma kontekst poprzednich krań.
+
+---
+
+## 🎯 CHECKLIST: Czy Twój prompt jest dobry?
+
+- ✅ **Rola** — Jasne kim jestem / czym się zajmuję
+- ✅ **Cel** — Wiem co chcę dostać (biznesowo, nie technicznie)
+- ✅ **Instrukcje** — Mam plan kroków, nie zamieszanie
+- ✅ **Zasady** — Wiem co jest **zakazane** (chroni i oszczędza)
+- ✅ **Format** — Dokładnie gdzie i jak ma być kod/dokument
+- ✅ **Kontekst** — Kolej przykłady dla branży, nie ogólnik
+- ✅ **Zgłoszenie** — [#ticket/ref] dla śledzenia (opcjonalnie)
+
+---
+
+## 📌 Wzorzec na szybko:
+
+```markdown
+Rola: [kim jestem, doświadczenie]
+
+Cel: [CO mam dostać, business outcome]
+
+Instrukcje:
+- Krok 1
+- Krok 2
+
+Zasady:
+- używaj tylko [narzędzia A, B]
+- nie czytaj [co nie wolno]
+- nie rób [limity/excludes]
+
+Format: [gdzie i jak: .md, SQL block, etc]
+
+Kontekst: [branża, założenia biznesowe, przykłady realne]
+```
+
+---
+
+## 💡 Dlaczego to działa?
+
+**Bez tego:** "Wygoneruj dokumentację" → AI zgaduje, pali tokeny, trafia obok  
+**Z tym:** AI ma mapę mapy, wiadomy kierunek, oszczędza i trafi 🎯
+
+---
+
+**Zapisz sobie ten szablon — będzie działać na każdy prompt!** 👍
+````
+
+**Result:**
+
+```
+Created file /home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/notatki/szablon-dobrego-prompta.md with 2911 characters
+```
+</details></tool-use>
+
+_**Agent (Anthropic 2/claude-haiku-4-5-20251001 2026-11-09 10:09:38Z)**_
+
+<think><details><summary>Thought Process</summary>
+Gotowe! Zapisałem dokument verbatim do folderu ./notatki/
+</details></think>
+
+Gotowe! ✅
+
+📁 **Plik zapisany:** [`./notatki/szablon-dobrego-prompta.md`](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/notatki/szablon-dobrego-prompta.md)
+
+Teraz masz szablon zawsze pod ręką do reużywania na każdy prompt! 👍
