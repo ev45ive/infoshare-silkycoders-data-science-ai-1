@@ -54,6 +54,12 @@ Zanim policzysz jakąkolwiek metrykę, sprawdź jej definicję w
 [docs/slownik-metryk.md](docs/slownik-metryk.md) i podaj źródło, z którego
 korzystasz.
 
+## Instrukcje warunkowe
+
+Przy pracy z plikami danego typu stosuj zasady z plików:
+- pliki `.sql`: [.github/instructions/sql.instructions.md](.github/instructions/sql.instructions.md)
+- notebooki `.ipynb`: [.github/instructions/jupyter.instructions.md](.github/instructions/jupyter.instructions.md)
+
 
 ---
 
