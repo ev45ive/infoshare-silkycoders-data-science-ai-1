@@ -13,7 +13,7 @@
 9. Data Science w Nordvik
 10. Słownik pojęć
 11. Założenia i źródła
-
+ dasd
 ---
 
 ## 1. Profil firmy
