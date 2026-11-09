@@ -1,0 +1,12 @@
+CREATE TABLE src.SalesRaw (SourceLineId varchar(40), TransactionNo varchar(40), LineNo int, SoldAt varchar(30), StoreCode varchar(20), SKU varchar(40), Quantity varchar(20), UnitNetPrice varchar(30), Status varchar(20), SourceFile varchar(100), ExtractedAt datetimeoffset);
+CREATE TABLE src.AdjustmentRaw (AdjustmentId varchar(40), StoreCode varchar(20), AdjustedAt varchar(30), AdjustmentType varchar(60), AdjustmentAmount varchar(30), ApprovalStatus varchar(20), SourceFile varchar(100), ExtractedAt datetimeoffset);
+CREATE TABLE stg.Sales (SourceLineId varchar(40), TransactionNo varchar(40), LineNo int, SoldAt date, StoreCode varchar(20), SKU varchar(40), Quantity int, UnitNetPrice decimal(12,2), Status varchar(20), SourceFile varchar(100), ExtractedAt datetimeoffset);
+CREATE TABLE stg.Adjustment (AdjustmentId varchar(40), StoreCode varchar(20), AdjustedAt date, AdjustmentType varchar(60), AdjustmentAmount decimal(12,2), ApprovalStatus varchar(20), SourceFile varchar(100), ExtractedAt datetimeoffset);
+CREATE TABLE dbo.DimDate (DateKey int PRIMARY KEY, FullDate date, IsoYearWeek varchar(10));
+CREATE TABLE dbo.DimStore (StoreKey int PRIMARY KEY, StoreCode varchar(20));
+CREATE TABLE dbo.DimProduct (ProductKey int PRIMARY KEY, SKU varchar(40));
+CREATE TABLE dbo.DimAdjustmentType (AdjustmentTypeKey int PRIMARY KEY, Label varchar(60));
+CREATE TABLE dbo.FactSales (DateKey int, StoreKey int, ProductKey int, TransactionNo varchar(40), LineNo int, Quantity int, UnitNetPrice decimal(12,2), Status varchar(20), PRIMARY KEY (TransactionNo, LineNo));
+CREATE TABLE dbo.FactAdjustment (DateKey int, StoreKey int, AdjustmentId varchar(40) PRIMARY KEY, AdjustmentTypeKey int, AdjustmentAmount decimal(12,2), ApprovalStatus varchar(20));
+CREATE TABLE dbo.FactReturns (DateKey int, StoreKey int, ReturnLineId varchar(40) PRIMARY KEY, TransactionNo varchar(40), ReturnAmount decimal(12,2));
+CREATE TABLE dbo.LoadLog (RunId varchar(40) PRIMARY KEY, Procedure varchar(80), StartedAt datetimeoffset, Status varchar(20), ReadRows int, LoadedRows int, RejectedRows int);
