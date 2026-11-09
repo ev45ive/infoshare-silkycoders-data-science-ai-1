@@ -59,6 +59,7 @@ korzystasz.
 Przy pracy z plikami danego typu stosuj zasady z plików:
 - pliki `.sql`: [.github/instructions/sql.instructions.md](.github/instructions/sql.instructions.md)
 - notebooki `.ipynb`: [.github/instructions/jupyter.instructions.md](.github/instructions/jupyter.instructions.md)
+- Nie czytaj do kontekstu dużych plików .csv .sql .xlsx itp. - użyj narzędzi lub skrpytu żeby określić schemat oraz by wyciągać konkretne zapytania / analizy
 
 
 ---
