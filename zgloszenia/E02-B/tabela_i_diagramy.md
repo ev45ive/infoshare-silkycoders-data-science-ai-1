@@ -85,3 +85,142 @@ flowchart LR
 ```
 
 *Źródło liczb: sumy z próbki [przyklad_wierszy.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/przyklad_wierszy.csv) (dane syntetyczne), wyliczone wg formuły widoku.*
+
+### 3.3 Mostek kwot (sankey-beta)
+
+```mermaid
+sankey-beta
+"Suma wszystkich pozycji","COMPLETED",896473
+"Suma wszystkich pozycji","CANCELLED",38051
+"COMPLETED","SalesAfterAdjustments",896473
+"Korekty POSTED","SalesAfterAdjustments",84.34
+```
+
+*Źródło liczb: sumy z próbki [przyklad_wierszy.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/przyklad_wierszy.csv) wg formuły widoku; wartości zaokrąglone do pełnych złotych, korekta 84,34 zostawiona dokładnie.*
+
+### 3.4 Model danych (erDiagram)
+
+```mermaid
+erDiagram
+  FactSales }o--|| DimDate : DateKey
+  FactSales }o--|| DimStore : StoreKey
+  FactSales }o--|| DimProduct : ProductKey
+  FactAdjustment }o--|| DimDate : DateKey
+  FactAdjustment }o--|| DimStore : StoreKey
+  FactAdjustment }o--|| DimAdjustmentType : AdjustmentTypeKey
+  FactReturns }o--|| DimDate : DateKey
+  FactReturns }o--|| DimStore : StoreKey
+  FactSales {
+    string TransactionNo PK
+    int LineNo PK
+    int Quantity
+    decimal UnitNetPrice
+    string Status
+  }
+  FactAdjustment {
+    string AdjustmentId PK
+    decimal AdjustmentAmount
+    string ApprovalStatus
+  }
+  FactReturns {
+    string ReturnLineId PK
+    decimal ReturnAmount
+  }
+```
+
+*Źródło: definicje tabel w [schema.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/schema.sql); diagram nie zawiera liczb. Relacje `FactReturns` → `FactSales` nie są zdefiniowane w schemacie, więc nie są pokazane.*
+
+### 3.5 Kolejność ładowania (sequenceDiagram)
+
+```mermaid
+sequenceDiagram
+  participant ETL as etl.LoadSales
+  participant SRC as src
+  participant STG as stg
+  participant FCT as dbo (fakty)
+  participant RPT as reporting
+  ETL->>SRC: odczyt SalesRaw / AdjustmentRaw
+  ETL->>STG: TRY_CONVERT (data, int, decimal)
+  Note over STG: błędne wartości → NULL
+  ETL->>FCT: INSERT z JOIN do wymiarów
+  Note over FCT: brak dopasowania → wiersz pominięty
+  ETL-->>ETL: zapis RUN-26014 do LoadLog (READ/LOADED/REJECTED)
+  FCT->>RPT: vw_SalesAfterAdjustments
+```
+
+*Źródło: kolejność z [staging_fact.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/staging_fact.sql) i [adjustment_lineage.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/adjustment_lineage.sql) oraz [loadlog.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/loadlog.csv): 12 odczytanych, 10 załadowanych, 2 odrzucone.*
+
+### 3.6 Statusy (stateDiagram-v2)
+
+```mermaid
+stateDiagram-v2
+  state "Pozycja sprzedaży" as S {
+    [*] --> COMPLETED
+    [*] --> CANCELLED
+  }
+  state "Korekta" as K {
+    [*] --> DRAFT
+    DRAFT --> POSTED
+  }
+  COMPLETED --> Widok : uwzględniona
+  POSTED --> Widok : uwzględniona
+  CANCELLED --> Wykluczona : poza widokiem
+  DRAFT --> Wykluczona : poza widokiem
+```
+
+*Źródło: filtry `Status='COMPLETED'` i `ApprovalStatus='POSTED'` w [implementacja.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/implementacja.sql); przejście DRAFT → POSTED nie jest opisane w SQL, więc jest to niewiadoma.*
+
+### 3.7 Wydania i obowiązywanie (timeline)
+
+```mermaid
+timeline
+  title Wersje i przebiegi
+  section Wdrożenie
+    13.10.2026 17:20 : REL-2026.10.3 opublikowany
+  section Katalog i ładowanie
+    14.10.2026 02:00 : RUN-26014 etl.LoadSales (2 odrzucone)
+    14.10.2026 08:00 : Katalog CAT-2026.10 wyeksportowany
+  section Obiekty
+    data nieznana : vw_WeeklySalesLegacy emerytowany
+    data nieznana : vw_SalesAdjusted, brak w eksporcie
+```
+
+*Źródło: [implementacja.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/implementacja.sql), [katalog.md](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/katalog.md), [loadlog.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/loadlog.csv); daty bez podanej godziny w katalogu są niepełne.*
+
+### 3.8 Warstwy systemu (block-beta)
+
+```mermaid
+block-beta
+  columns 3
+  s1["src<br/>SalesRaw, AdjustmentRaw"]
+  s2["stg<br/>Sales, Adjustment"]
+  s3["dbo<br/>FactSales, FactAdjustment, FactReturns, Dim*"]
+  r1["reporting<br/>vw_SalesAfterAdjustments"]:3
+  s1 --> s2
+  s2 --> s3
+  s3 --> r1
+```
+
+*Źródło: warstwy z [katalog.md](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/katalog.md) i [schema.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/schema.sql); diagram nie zawiera liczb.*
+
+### 3.9 Różnica per sklep (xychart-beta)
+
+```mermaid
+xychart-beta
+  title "Sprzedaż po korektach wg sklepu (próbka)"
+  x-axis ["7", "8", "9", "10", "11", "12"]
+  y-axis "PLN"
+  bar [188, 160, 139, 296714, 303535, 295822]
+```
+
+*Źródło: suma `COMPLETED` + `POSTED` per `StoreKey` z [przyklad_wierszy.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/przyklad_wierszy.csv) (dane syntetyczne); sklepy 7–9 mają kilka wierszy, więc skala jest niewspółmierna. Nie pokazuje różnicy względem paragonów, bo ta nie jest rozbita per sklep w próbce.*
+
+### 3.10 Udział anulowanych (pie)
+
+```mermaid
+pie title "Pozycje sprzedaży wg statusu (próbka)"
+  "COMPLETED" : 896473
+  "CANCELLED" : 38051
+```
+
+*Źródło: sumy `Quantity × UnitNetPrice` wg `Status` z [przyklad_wierszy.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/przyklad_wierszy.csv); korekty i zwroty nie są w tym wykresie, bo mają inne znaki i inne ziarno.*

@@ -519,3 +519,247 @@ Przepisałem [tabela_i_diagramy.md](/home/teamsharq/Desktop/infoshare-silkycoder
 - **Diagramy:** legenda jako lista, każdy diagram z jednozdaniowym źródłem liczb pod spodem.
 
 Liczby i wnioski są te same co w poprzedniej wersji. Nie renderowałem diagramów Mermaid.
+
+---
+
+_**User (2026-11-09 11:43:28Z)**_
+
+jakie inne rodzaje mermaid można by tutaj użyć
+
+---
+
+_**Agent (Anthropic 2/claude-haiku-5-5 2026-11-09 11:43:36Z)**_
+
+Dla tego zgłoszenia najbardziej przydatne byłyby te typy Mermaid:
+
+| Typ | Pytanie controllingu, na które odpowiada | Uwagi |
+|---|---|---|
+| `sankey-beta` | Jak kwoty przepływają od sprzedaży do wyniku? | Najlepszy zamiennik mostka: grubość strzałek pokazuje kwoty. Wymaga Mermaid 10.3+ i może nie działać w każdym rendererze. |
+| `erDiagram` | Jakie tabele i klucze łączą fakty z wymiarami? | Pokazuje `FactSales`, `FactAdjustment`, `FactReturns`, `DimDate`, `DimStore` i relacje po kluczach. Dobre do pytania „po czym jest JOIN”. |
+| `sequenceDiagram` | W jakiej kolejności działa ładowanie? | Pokazuje kroki `src → stg → Fact → widok` z podziałem na procedury, np. `etl.LoadSales`. Przydatne przy pytaniu o odrzucone wiersze. |
+| `stateDiagram-v2` | Jakie statusy mają sprzedaż i korekty? | `COMPLETED`/`CANCELLED` oraz `DRAFT` → `POSTED`. Pokazuje, co widok uwzględnia, a co wyklucza. |
+| `timeline` | Kiedy co obowiązywało? | Publikacja REL-2026.10.3 (13.10), katalog CAT-2026.10 (14.10), RUN-26014 (14.10), emerytura legacy. Przydatne do pytania „która wersja”. |
+| `block-beta` | Jak są warstwy systemu? | Warstwy `src`, `stg`, `dbo`, `reporting` jako bloki. Mniej szczegółowe niż flowchart. |
+| `xychart-beta` (słupki) | Jak wygląda różnica per sklep lub tydzień? | Nie ma wodospadu, ale słupki per sklep lub tydzień pokażą, gdzie koncentruje się różnica. Wymaga danych z pełnego zestawienia, nie z próbki syntetycznej. |
+| `pie` | Jaki udział mają anulowane, zwroty i korekty? | Prosty udział, ale przy kilku pozycjach o różnych znakach słabo czytelny. |
+
+Moja rekomendacja: zostawić `flowchart` dla lineage, dodać `sankey-beta` zamiast łańcucha węzłów w mostku kwot, a ewentualnie `stateDiagram-v2` dla statusów. Pozostałe typy są opcjonalne.
+
+Nie zmieniałem pliku. Jeśli chcesz, dodam wybrane diagramy do [tabela_i_diagramy.md](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/tabela_i_diagramy.md).
+
+---
+
+_**User (2026-11-09 11:44:09Z)**_
+
+dodaj po jednym z każdego typu
+
+---
+
+_**Agent (Anthropic 2/claude-haiku-5-5 2026-11-09 11:44:19Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="bash"><details>
+<summary>Tool use: **bash**</summary>
+
+Compute per-store totals for bar chart
+
+```bash
+cd /home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B && python3 - <<'EOF'
+import csv,collections
+rows=[r for r in csv.reader(l for l in open('przyklad_wierszy.csv',encoding='utf-8') if not l.startswith('#'))]
+h=rows[0]; data=[dict(zip(h,r)) for r in rows[1:]]
+v=collections.defaultdict(float)
+for d in data:
+    if d['layer']=='FactSales' and d['Status']=='COMPLETED': v[d['StoreKey']]+=float(d['Quantity'])*float(d['UnitNetPrice'])
+    if d['layer']=='FactAdjustment' and d['ApprovalStatus']=='POSTED': v[d['StoreKey']]+=float(d['AdjustmentAmount'])
+print({k:round(x,2) for k,x in sorted(v.items(),key=lambda t:int(t[0]))})
+EOF
+```
+
+**Result:**
+
+```text
+{'7': 188.0, '8': 160.0, '9': 139.0, '10': 296713.9, '11': 303534.73, '12': 295821.71}
+<shellId: 39 completed with exit code 0>
+```
+</details></tool-use>
+
+_**Agent (Anthropic 2/claude-haiku-5-5 2026-11-09 11:45:13Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="bash"><details>
+<summary>Tool use: **bash**</summary>
+
+Append eight additional Mermaid diagram types
+
+````bash
+cd /home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B && cat >> tabela_i_diagramy.md <<'EOF'
+
+### 3.3 Mostek kwot (sankey-beta)
+
+```mermaid
+sankey-beta
+"Suma wszystkich pozycji","COMPLETED",896473
+"Suma wszystkich pozycji","CANCELLED",38051
+"COMPLETED","SalesAfterAdjustments",896473
+"Korekty POSTED","SalesAfterAdjustments",84.34
+```
+
+*Źródło liczb: sumy z próbki [przyklad_wierszy.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/przyklad_wierszy.csv) wg formuły widoku; wartości zaokrąglone do pełnych złotych, korekta 84,34 zostawiona dokładnie.*
+
+### 3.4 Model danych (erDiagram)
+
+```mermaid
+erDiagram
+  FactSales }o--|| DimDate : DateKey
+  FactSales }o--|| DimStore : StoreKey
+  FactSales }o--|| DimProduct : ProductKey
+  FactAdjustment }o--|| DimDate : DateKey
+  FactAdjustment }o--|| DimStore : StoreKey
+  FactAdjustment }o--|| DimAdjustmentType : AdjustmentTypeKey
+  FactReturns }o--|| DimDate : DateKey
+  FactReturns }o--|| DimStore : StoreKey
+  FactSales {
+    string TransactionNo PK
+    int LineNo PK
+    int Quantity
+    decimal UnitNetPrice
+    string Status
+  }
+  FactAdjustment {
+    string AdjustmentId PK
+    decimal AdjustmentAmount
+    string ApprovalStatus
+  }
+  FactReturns {
+    string ReturnLineId PK
+    decimal ReturnAmount
+  }
+```
+
+*Źródło: definicje tabel w [schema.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/schema.sql); diagram nie zawiera liczb. Relacje `FactReturns` → `FactSales` nie są zdefiniowane w schemacie, więc nie są pokazane.*
+
+### 3.5 Kolejność ładowania (sequenceDiagram)
+
+```mermaid
+sequenceDiagram
+  participant ETL as etl.LoadSales
+  participant SRC as src
+  participant STG as stg
+  participant FCT as dbo (fakty)
+  participant RPT as reporting
+  ETL->>SRC: odczyt SalesRaw / AdjustmentRaw
+  ETL->>STG: TRY_CONVERT (data, int, decimal)
+  Note over STG: błędne wartości → NULL
+  ETL->>FCT: INSERT z JOIN do wymiarów
+  Note over FCT: brak dopasowania → wiersz pominięty
+  ETL-->>ETL: zapis RUN-26014 do LoadLog (READ/LOADED/REJECTED)
+  FCT->>RPT: vw_SalesAfterAdjustments
+```
+
+*Źródło: kolejność z [staging_fact.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/staging_fact.sql) i [adjustment_lineage.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/adjustment_lineage.sql) oraz [loadlog.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/loadlog.csv): 12 odczytanych, 10 załadowanych, 2 odrzucone.*
+
+### 3.6 Statusy (stateDiagram-v2)
+
+```mermaid
+stateDiagram-v2
+  state "Pozycja sprzedaży" as S {
+    [*] --> COMPLETED
+    [*] --> CANCELLED
+  }
+  state "Korekta" as K {
+    [*] --> DRAFT
+    DRAFT --> POSTED
+  }
+  COMPLETED --> Widok : uwzględniona
+  POSTED --> Widok : uwzględniona
+  CANCELLED --> Wykluczona : poza widokiem
+  DRAFT --> Wykluczona : poza widokiem
+```
+
+*Źródło: filtry `Status='COMPLETED'` i `ApprovalStatus='POSTED'` w [implementacja.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/implementacja.sql); przejście DRAFT → POSTED nie jest opisane w SQL, więc jest to niewiadoma.*
+
+### 3.7 Wydania i obowiązywanie (timeline)
+
+```mermaid
+timeline
+  title Wersje i przebiegi
+  section Wdrożenie
+    13.10.2026 17:20 : REL-2026.10.3 opublikowany
+  section Katalog i ładowanie
+    14.10.2026 02:00 : RUN-26014 etl.LoadSales (2 odrzucone)
+    14.10.2026 08:00 : Katalog CAT-2026.10 wyeksportowany
+  section Obiekty
+    data nieznana : vw_WeeklySalesLegacy emerytowany
+    data nieznana : vw_SalesAdjusted, brak w eksporcie
+```
+
+*Źródło: [implementacja.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/implementacja.sql), [katalog.md](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/katalog.md), [loadlog.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/loadlog.csv); daty bez podanej godziny w katalogu są niepełne.*
+
+### 3.8 Warstwy systemu (block-beta)
+
+```mermaid
+block-beta
+  columns 3
+  s1["src<br/>SalesRaw, AdjustmentRaw"]
+  s2["stg<br/>Sales, Adjustment"]
+  s3["dbo<br/>FactSales, FactAdjustment, FactReturns, Dim*"]
+  r1["reporting<br/>vw_SalesAfterAdjustments"]:3
+  s1 --> s2
+  s2 --> s3
+  s3 --> r1
+```
+
+*Źródło: warstwy z [katalog.md](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/katalog.md) i [schema.sql](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/schema.sql); diagram nie zawiera liczb.*
+
+### 3.9 Różnica per sklep (xychart-beta)
+
+```mermaid
+xychart-beta
+  title "Sprzedaż po korektach wg sklepu (próbka)"
+  x-axis ["7", "8", "9", "10", "11", "12"]
+  y-axis "PLN"
+  bar [188, 160, 139, 296714, 303535, 295822]
+```
+
+*Źródło: suma `COMPLETED` + `POSTED` per `StoreKey` z [przyklad_wierszy.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/przyklad_wierszy.csv) (dane syntetyczne); sklepy 7–9 mają kilka wierszy, więc skala jest niewspółmierna. Nie pokazuje różnicy względem paragonów, bo ta nie jest rozbita per sklep w próbce.*
+
+### 3.10 Udział anulowanych (pie)
+
+```mermaid
+pie title "Pozycje sprzedaży wg statusu (próbka)"
+  "COMPLETED" : 896473
+  "CANCELLED" : 38051
+```
+
+*Źródło: sumy `Quantity × UnitNetPrice` wg `Status` z [przyklad_wierszy.csv](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/przyklad_wierszy.csv); korekty i zwroty nie są w tym wykresie, bo mają inne znaki i inne ziarno.*
+EOF
+grep -n '^```mermaid' tabela_i_diagramy.md | wc -l; (npx --no-install mmdc --version 2>/dev/null || echo "mmdc niedostępny")
+````
+
+**Result:**
+
+```text
+10
+mmdc niedostępny
+<shellId: 40 completed with exit code 0>
+```
+</details></tool-use>
+
+_**Agent (Anthropic 2/claude-haiku-5-5 2026-11-09 11:45:17Z)**_
+
+Dopisałem do [tabela_i_diagramy.md](/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/zgloszenia/E02-B/tabela_i_diagramy.md) po jednym diagramie z każdego typu z poprzedniej listy:
+
+- **3.3 `sankey-beta`:** mostek kwot (934 524 → 896 473 + 38 051, korekty +84,34).
+- **3.4 `erDiagram`:** tabele faktów i wymiarów z kluczami i relacjami ze `schema.sql`.
+- **3.5 `sequenceDiagram`:** kolejność ładowania z `etl.LoadSales` i zapisem do `LoadLog`.
+- **3.6 `stateDiagram-v2`:** statusy `COMPLETED`/`CANCELLED` i `DRAFT`/`POSTED`.
+- **3.7 `timeline`:** wdrożenie 13.10, RUN-26014 i katalog 14.10, obiekty bez daty.
+- **3.8 `block-beta`:** warstwy `src` → `stg` → `dbo` → `reporting`.
+- **3.9 `xychart-beta`:** kwoty per sklep z próbki.
+- **3.10 `pie`:** udział `COMPLETED` i `CANCELLED`.
+
+Każdy diagram ma jednozdaniowe źródło pod spodem.
+
+Uwagi:
+- **Nie renderowałem** diagramów, bo `mmdc` nie jest zainstalowany. Składnię trzeba sprawdzić w podglądzie Markdown lub na mermaid.live.
+- **Wykres per sklep (3.9)** pokazuje sklepy 7–9 z kilkoma wierszami obok sklepów 10–12 z setkami tysięcy. Skala jest niewspółmierna, więc wykres służy raczej jako ilustracja niż analiza.
+- **Diagram 3.6** pokazuje przejście `DRAFT → POSTED`, którego SQL nie opisuje. Zaznaczyłem to w podpisie jako niewiadomą.
