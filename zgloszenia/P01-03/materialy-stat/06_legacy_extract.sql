@@ -1,0 +1,2 @@
+-- Search lead only: archived draft mentions dbo.LegacyPriceSignal.
+-- Header says retired prototype; verify ownership and consumers before treating as active dependency.

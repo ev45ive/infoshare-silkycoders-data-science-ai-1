@@ -1,0 +1,13 @@
+{
+  "fixture_status": "proposed scenario only",
+  "model": "weekly-demand-v7",
+  "training_features": [
+    "Lag4Units",
+    "LegacyPriceSignal"
+  ],
+  "scoring_features": [
+    "Lag4Units",
+    "LegacyPriceSignal"
+  ],
+  "warning": "Manifest is static and is not evidence of Nordvik infrastructure."
+}

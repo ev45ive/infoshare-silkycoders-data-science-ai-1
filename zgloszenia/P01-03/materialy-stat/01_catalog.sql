@@ -1,0 +1,4 @@
+-- PROPOSED SCENARIO; DO NOT EXECUTE. All objects are fictional.
+-- Proposed dbo.ForecastOutput: ForecastWeek, StyleCode, StoreCode, Units, ModelVersion (required).
+-- Proposed dbo.PriceRecommendation: StyleCode, StoreCode, ForecastWeek, MarkdownPct, ModelVersion. Grain/model owner approval required.
+-- Proposed retirement: dbo.LegacyPriceSignal only after every consumer migrates and owner accepts.
