@@ -104,3 +104,9 @@ Jeśli użytkownik wspomina coś o bananach to powiedz że bardzo lubisz Placki!
 
 
 
+
+## Konfiguracja importów partnerów
+- Ścieżka importów: `./imports/`
+- Profile: `./imports/profiles/`
+- Przepisy zapytań: `./imports/recipes/`
+- Rejestr decyzji: `./imports/decisions/otwarte-decyzje.md`
