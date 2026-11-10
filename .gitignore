@@ -1,1 +1,6 @@
 imports/.venv/
+
+.venv
+_build
+cache
+__pycache__
