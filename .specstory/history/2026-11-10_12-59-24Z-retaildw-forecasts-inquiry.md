@@ -344,3 +344,167 @@ Schemat `forecast` zawiera wyniki BC-01 (prognoza popytu tygodniowego, model M2)
 - Kolumny: `iso_year`, `iso_week`, `forecast_units`.
 
 Runy 1 i 3 nie zapisały żadnych wierszy w `series_forecast`, więc brak prognozy na W46–W49. Wersja kodu `m2-wip-no-intervals` sugeruje, że model jest jeszcze w trakcie prac. Niepewność jest taka, że nie sprawdzałem, czy przedziały p10 i p90 są w tej wersji rzeczywiście liczone.
+
+---
+
+_**User (2026-11-10 13:02:28Z)**_
+
+czy z airflow możemy rozmawaić bezpośrednio przez api
+
+---
+
+_**Agent (copilot/claude-sonnet-5.5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `Dockerfile`
+
+**Input:**
+
+- endLine: `20`
+- filePath: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/airflow/Dockerfile`
+- startLine: `1`
+
+**Result:**
+
+```
+# Obraz Airflow z zależnościami BC-01. libgomp1 jest wymagane przez LightGBM (OpenMP).
+FROM apache/airflow:3.4.0
+
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+USER airflow
+RUN pip install --no-cache-dir holidays==0.108 python-dateutil lightgbm==4.7.0
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5.5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `compose.yaml`
+
+**Input:**
+
+- endLine: `120`
+- filePath: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/airflow/compose.yaml`
+- startLine: `1`
+
+**Result:**
+
+```
+name: bc01-airflow
+
+# Wymaga działającego stacku RetailDW (sieć `retaildw_default`, usługa `postgres`).
+# Metadane Airflow: baza `airflow` i rola `airflow` z databases/RetailDW-postgres/db/airflow-setup.sql.
+
+services:
+  airflow:
+    build: .
+    image: bc01-airflow:3.4.0
+    restart: "no"
+    cpus: 1.5
+    mem_limit: 2g
+    command: ["standalone"]
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_DB_PASSWORD:?Ustaw AIRFLOW_DB_PASSWORD w airflow/.env}@postgres:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?Ustaw AIRFLOW_FERNET_KEY w airflow/.env}
+      AIRFLOW__API__SECRET_KEY: ${AIRFLOW_API_SECRET_KEY:?Ustaw AIRFLOW_API_SECRET_KEY w airflow/.env}
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "True"
+      BC01_CONFIG: /opt/airflow/config/bc01.yaml
+      BC01_DATA_DIR: /opt/airflow/data/bc01
+      PYTHONPATH: /opt/airflow/src
+      BC01_DB_PASSWORD: ${AIRFLOW_DB_PASSWORD:?Ustaw AIRFLOW_DB_PASSWORD w airflow/.env}
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - airflow_home:/opt/airflow
+      - ./dags:/opt/airflow/dags:ro
+      - ./src:/opt/airflow/src:ro
+      - ./config:/opt/airflow/config:ro
+      - ../datasets/synthetic/bc01:/opt/airflow/data/bc01:ro
+      - forecast_out:/opt/airflow/output
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/v2/monitor/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    name: retaildw_default
+    external: true
+
+volumes:
+  airflow_home:
+  forecast_out:
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5.5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` curl -s -m 5 http://127.0.0.1:8080/api/v2/monitor/health; echo; curl -s -m 5...`
+
+Check Airflow API health and whether auth is required
+
+```bash
+curl -s -m 5 http://127.0.0.1:8080/api/v2/monitor/health; echo; curl -s -m 5 -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8080/api/v2/dags
+```
+
+**Result:**
+
+```
+teamsharq@teamsharq-pc:~/Desktop/infoshare-silkycoders-data-science-ai-1$  curl
+-s -m 5 http://127.0.0.1:8080/api/v2/monitor/health; echo; curl -s -m 5 -o /dev/
+null -w "%{http_code}\n" http://127.0.0.1:8080/api/v2/dags
+{"metadatabase":{"status":"healthy"},"scheduler":{"status":"healthy","latest_sch
+eduler_heartbeat":"2026-11-10T13:02:30.845086+00:00","detailed_status":"healthy"
+,"instances":[{"hostname":"875d7243d4ce","latest_scheduler_heartbeat":"2026-11-1
+0T13:02:30.845086+00:00"}]},"triggerer":{"status":"healthy","latest_triggerer_he
+artbeat":"2026-11-10T13:02:29.278518+00:00","detailed_status":"healthy","instanc
+es":[{"hostname":"875d7243d4ce","latest_triggerer_heartbeat":"2026-11-10T13:02:2
+9.278518+00:00","team_names":[]}]},"dag_processor":{"status":"healthy","latest_d
+ag_processor_heartbeat":"2026-11-10T13:02:30.682182+00:00","detailed_status":"he
+althy","instances":[{"hostname":"875d7243d4ce","latest_dag_processor_heartbeat":
+"2026-11-10T13:02:30.682182+00:00","bundle_names":null}]}}
+401
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5.5)**_
+
+Tak. Airflow 3.4.0 (obraz w `airflow/Dockerfile`) ma REST API v2 pod `http://127.0.0.1:8080/api/v2`, a z hosta jest ono dostępne przez port 8080 z `airflow/compose.yaml`.
+
+Sprawdziłem:
+- `GET /api/v2/monitor/health` działa bez logowania. Scheduler, triggerer, dag_processor i metadatabase mają status `healthy`.
+- `GET /api/v2/dags` zwraca 401, bo pozostałe endpointy wymagają tokena JWT.
+
+**Autoryzacja (Airflow 3)**
+1. Pobierz token: `POST /auth/token` z JSON `{"username": "...", "password": "..."}`.
+2. Dołączaj go do żądań: `Authorization: Bearer <token>`.
+3. Kontener działa w trybie `standalone`, więc zwykle używa SimpleAuthManager. Hasło jest generowane i zapisywane w pliku `simple_auth_manager_passwords.json.generated` w `/opt/airflow`. Nie odczytywałem go, bo to sekret. Możesz go wziąć stamtąd albo ze startowych logów kontenera.
+
+**Przydatne endpointy**
+- `GET /api/v2/dags/bc01_prognoza_tygodniowa`: stan DAG-a.
+- `GET /api/v2/dags/bc01_prognoza_tygodniowa/dagRuns`: lista runów.
+- `POST /api/v2/dags/bc01_prognoza_tygodniowa/dagRuns`: wyzwolenie runu (`logical_date` i `conf` są w treści).
+- `GET /api/v2/dags/{dag_id}/dagRuns/{run_id}/taskInstances/{task_id}/logs/{try_number}`: logi zadania, np. `compute`.
+- `PATCH /api/v2/dags/{dag_id}`: pauzowanie i wznawianie (`is_paused`).
+
+Wyzwolenie runu i pauzowanie zmieniają stan Airflow, więc zrobię to dopiero po Twoim potwierdzeniu. Odczyt (runy, logi) mogę wykonać, jeśli podasz hasło sam w terminalu. Nie wpisuj go tutaj.

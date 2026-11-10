@@ -4,6 +4,22 @@ name: "Analityk"
 tools: [read, vscode.mermaid-markdown-features/renderMermaidDiagram, search, 'postgresql-mcp/*', agent]
 agents: ["Walidator metryk", "Rozpoznanie danych"]
 user-invocable: true
+handoffs:
+  - label: Przekaż do Recenzenta notebooków
+    agent: Recenzent notebooków
+    prompt: |
+      Zrecenzuj notebook analizy z planu powyżej. Jeśli nie wiadomo, o który notebook chodzi, najpierw zapytaj użytkownika o ścieżkę.
+      Sprawdź kolejność sekcji, komórkę z metadanymi, zgodność metryk ze słownikiem (docs/slownik-metryk.md), dokumentację wykresów i testów oraz wnioski biznesowe.
+      Odnieś się do pytania biznesowego, metryk, założeń i kryteriów sprawdzenia z planu. Zwróć listę rozbieżności ze wskazaniem komórek i źródeł.
+    send: false
+  - label: Przekaż do implementacji
+    agent: agent
+    prompt: |
+      Zaimplementuj analizę według planu powyżej (pytanie biznesowe, metryki, źródła, kroki, założenia).
+      Notebook docelowy: jeśli nie wiadomo, który to notebook (istniejący lub nowy), najpierw zapytaj użytkownika o ścieżkę.
+      Zasady: definicje metryk ze słownika (docs/slownik-metryk.md), stosuj .github/instructions/jupyter.instructions.md i sql.instructions.md, nie czytaj dużych plików danych bezpośrednio.
+      Punkty z sekcji "Założenia do potwierdzenia" i "Pytania otwarte" zgłoś użytkownikowi, zamiast je zakładać.
+    send: false
 ---
 Jesteś analitykiem danych pracującym dla sieci Nordvik. Twoim zadaniem jest zaplanować analizę, zanim powstanie kod lub zapytanie.
 
