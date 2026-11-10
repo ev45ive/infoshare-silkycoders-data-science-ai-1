@@ -97,7 +97,9 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 | `airflow/src/bc01/features.py`: czyszczenie `YI` (`clean_sales`), `aggregates` (MT, CT), `feature_rows` (port komórek 48–52) | ✅ | Testy w `test_bc01_features.py`: tylko oflagowane tygodnie zmieniane w `YI`, brak wycieku z tygodni ≥ origin do cech. Zgodność M1/M2 z cache jeszcze do sprawdzenia. |
 | Kalendarz tygodniowy: `special_days`, `week_calendar` w `calendar.py` | ✅ | Cechy `wk_*`, dni otwarcia, niedziele handlowe, `holidays_monsat`. |
 | Reguły zer (sekcja 5) | ⏳ | Do przeniesienia razem z M1. |
-| Metody M1, M2 (LightGBM), analogi, B2 (sekcja 6) | ⏳ | M2 jest wynikiem do zapisu. Sekcja 4 zostaje poza kodem produkcyjnym. |
+| `airflow/src/bc01/m1.py`: indeks sezonowy (`season_index`) i ETS tłumiony (`forecast_m1`), port komórki 65 | ✅ | `test_bc01_m1.py`: test zgodności z `cache/m1_forecasts_v1.npz` (17 origin, P i FB) przechodzi w tolerancji 1e-6; syntetyczne: NaN przed startem, flaga fb przy krótkiej historii. Ograniczenie: indeks sezonowy ma stałe okno 2025-W02…2026-W01, poprawny dla origin od 2026-W02; dla wcześniejszych origin wymagałby innego okna. |
+| `load_model_meta` w `data.py` (kategoria, kolekcja, LaunchDate) | ✅ | Źródło: `dim_product.Category`, `merch_plan`. |
+| Metody M2 (LightGBM), analogi, B2 (sekcja 6) | ⏳ | M2 jest wynikiem do zapisu. Sekcja 4 zostaje poza kodem produkcyjnym. |
 | Przedziały i wyniki, flagi (sekcja 7) | ⏳ | |
 | Testy kontraktu „as of” i B1 | ✅ | `airflow/tests/test_bc01_contract.py`, 4 testy przechodzą (pytest w venv poza repo). |
 
@@ -130,7 +132,7 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 ## Jak weryfikować
 - `docker compose ps --format '{{.Health}}'` (w `airflow/`) — oczekiwany wynik: `healthy`4
 - `docker compose exec -T airflow airflow dags list-import-errors` — oczekiwany wynik: `No data found`
-- `PYTHONPATH=src /tmp/bc01-test-venv/bin/python -m pytest -q tests` (w `airflow/`) — oczekiwany wynik: 10 passed. Venv tymczasowy: pandas, pyarrow, pytest, numpy, python-dateutil, holidays; w razie braku odtworzyć.
+- `PYTHONPATH=src /tmp/bc01-test-venv/bin/python -m pytest -q tests` (w `airflow/`) — oczekiwany wynik: 17 passed. Venv tymczasowy: pandas, pyarrow, pytest, numpy, python-dateutil, holidays, statsmodels, lightgbm (dla M2); w razie braku odtworzyć.
 
 ## Pliki
 - `databases/RetailDW-postgres/db/migrations/V026__create_forecast_schema.sql`
@@ -138,7 +140,8 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 - `airflow/.env` (lokalny, nie w repo, zawiera hasło)
 - `airflow/HANDOFF.md` (ten plik)
 - `airflow/src/bc01/features.py`, `airflow/tests/test_bc01_features.py`
-- `airflow/src/bc01/calendar.py`, `panel.py`, `stockouts.py`, `load_catalog` w `data.py`
+- `airflow/src/bc01/calendar.py`, `panel.py`, `stockouts.py`, `load_catalog` i `load_model_meta` w `data.py`
+- `airflow/src/bc01/m1.py`, `airflow/tests/test_bc01_m1.py`
 - `airflow/tests/test_bc01_data_layer.py`
 
 ## Otwarte pytania
@@ -146,11 +149,13 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 2. Widok w `reporting` dla wyników prognoz: dodać jako `V027`?
 3. Progi alarmu monitoringu (WAPE i bias): notebook i ticket ich nie podają. Obecnie w `airflow/config/bc01.yaml` są wartości TESTOWE: WAPE 0,30, bias 0,10. Użytkownik je zmieni później.
 4. Q-04 zamknięte: dane zaczynają się w 2025, reguła niedziel handlowych dla wcześniejszych lat nie jest potrzebna.
+6. Nowa zależność M1: `statsmodels` (ExponentialSmoothing). Jest w venv testowym, NIE w `_PIP_ADDITIONAL_REQUIREMENTS` kontenera. Przed DAG-ami trzeba ją dodać z przypiętą wersją (decyzja użytkownika). Lokalnie użyta wersja 0.15.0.
 5. Zamknięte: `holidays==0.108` i `python-dateutil` dodane w `compose.yaml` przez `_PIP_ADDITIONAL_REQUIREMENTS` (decyzja użytkownika). Instalacja przy starcie kontenera; po zmianie wersji trzeba przebudować pin.
 
 Właściciel pytań Q-01…Q-03: użytkownik. Założenia tymczasowe: Q-01 tylko suma 4 tygodni; Q-02 brak migracji V027; Q-03 progi testowe z `bc01.yaml`.
  (etap cech): `features.py` (`clean_sales`, `aggregates`, `feature_rows`), kalendarz tygodniowy (`week_calendar`), `test_bc01_features.py`; sprawdzono: 14 testów przechodzi (w tym brak wycieku z tygodni ≥ origin); otwarte: zgodność M1/M2 z cache, M3, przedziały, DAG-i.
 - 2026-11-10 — zrobiono
 ## Dziennik postępu
+- 2026-11-10 — zrobiono (etap M1, faza 3): `load_model_meta`, `m1.py` (`season_index`, `forecast_m1`), `test_bc01_m1.py`; sprawdzono: 17 testów przechodzi, w tym zgodność M1 z `m1_forecasts_v1.npz` dla 17 origin (tolerancja 1e-6, brak pominięć); otwarte: M2, M3, przedziały, DAG-i, `statsmodels` w kontenerze.
 - 2026-11-10 — zrobiono (etap danych, faza 3): `load_catalog`, `calendar.py`, `panel.py`, `stockouts.py`, testy `test_bc01_data_layer.py`; sprawdzono: 10 testów przechodzi, B1 i flagi zgodne z CSV dla origin 2026-09-21; otwarte: YI, features, M1, M2, M3, przedziały, DAG-i; Q-04, zależność `holidays`.
 - 2026-11-10 — zrobiono: migracja V026, rola `airflow`, `.env.example`, Compose, `config/bc01.yaml`, `src/bc01/data.py` (as-of), `src/bc01/baseline.py` (B1), testy kontraktu, handoff zgodny z szablonem; sprawdzono: 4 testy przechodzą, `airflow db check` OK, kontener `healthy`, brak błędów importu DAG; commit `83e32da`; otwarte: M1/M2, DAG-i, Q-01…Q-03

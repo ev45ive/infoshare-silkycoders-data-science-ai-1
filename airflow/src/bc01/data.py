@@ -30,6 +30,16 @@ def load_catalog(data_dir: Path) -> Catalog:
     )
 
 
+def load_model_meta(data_dir: Path) -> pd.DataFrame:
+    """Kategoria, kolekcja i data premiery modelu (indeks: model, jak StyleCode w notebooku)."""
+    products = pd.read_parquet(data_dir / "dim_product.parquet", columns=["StyleCode", "Category"])
+    plan = pd.read_parquet(data_dir / "merch_plan.parquet", columns=["StyleCode", "Collection", "LaunchDate"])
+    meta = products.drop_duplicates("StyleCode").set_index("StyleCode").join(
+        plan.set_index("StyleCode"), how="left")
+    meta.index.name = "model"
+    return meta.rename(columns={"Category": "category", "Collection": "collection", "LaunchDate": "launch"})
+
+
 def load_sales(data_dir: Path, origin: pd.Timestamp) -> pd.DataFrame:
     """Zwraca sprzedaż (sztuki) z dniami przed origin, z kolumnami model i tydzień ISO."""
     origin = pd.Timestamp(origin).normalize()
