@@ -1,0 +1,22 @@
+# Konfiguracja prognozy BC-01. Każda zmiana podnosi config_version i trafia do forecast.run.
+config_version: 1
+
+# Ziarno dla wszystkiego, co losowe (zgodnie z notebookiem: SEED = 20260921).
+seed: 20260921
+
+# Horyzont: tygodnie t+1..t+4 od poniedziałku-origin; wynik to też suma 4 tygodni.
+horizon_weeks: 4
+
+# Zakres prognozy: top N modeli wg sprzedaży w lookback tygodniach przed origin, × lokalizacja.
+top_n_models: 20
+top_n_lookback_weeks: 8
+
+# Założenie zlecenia: brak nowych akcji rabatowych w prognozowanym okresie.
+promo_assumption: no_new_promotions
+
+# Przedział niepewności (p10–p90).
+forecast_interval: 0.80
+
+# Progi alarmu monitoringu. Wartości testowe, do zmiany po testach.
+wape_alarm_threshold: 0.30
+bias_alarm_threshold: 0.10

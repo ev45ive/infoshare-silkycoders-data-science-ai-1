@@ -4,3 +4,11 @@ imports/.venv/
 _build
 cache
 __pycache__
+airflow/.env
+airflow/logs/
+airflow/plugins/
+**/cache/
+*.pkl
+*.npz
+__pycache__/
+.ipynb_checkpoints/

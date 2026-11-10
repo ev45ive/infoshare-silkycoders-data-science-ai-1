@@ -1,0 +1,52 @@
+name: bc01-airflow
+
+# Wymaga działającego stacku RetailDW (sieć `retaildw_default`, usługa `postgres`).
+# Metadane Airflow: baza `airflow` i rola `airflow` z databases/RetailDW-postgres/db/airflow-setup.sql.
+
+services:
+  airflow:
+    image: apache/airflow:3.4.0
+    restart: "no"
+    cpus: 1.5
+    mem_limit: 2g
+    command: ["standalone"]
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_DB_PASSWORD:?Ustaw AIRFLOW_DB_PASSWORD w airflow/.env}@postgres:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?Ustaw AIRFLOW_FERNET_KEY w airflow/.env}
+      AIRFLOW__API__SECRET_KEY: ${AIRFLOW_API_SECRET_KEY:?Ustaw AIRFLOW_API_SECRET_KEY w airflow/.env}
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "True"
+      BC01_CONFIG: /opt/airflow/config/bc01.yaml
+      BC01_DATA_DIR: /opt/airflow/data/bc01
+      PYTHONPATH: /opt/airflow/src
+      _PIP_ADDITIONAL_REQUIREMENTS: "holidays==0.108 python-dateutil"
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - airflow_home:/opt/airflow
+      - ./dags:/opt/airflow/dags:ro
+      - ./src:/opt/airflow/src:ro
+      - ./config:/opt/airflow/config:ro
+      - ../datasets/synthetic/bc01:/opt/airflow/data/bc01:ro
+      - forecast_out:/opt/airflow/output
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/v2/monitor/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    name: retaildw_default
+    external: true
+
+volumes:
+  airflow_home:
+  forecast_out:
