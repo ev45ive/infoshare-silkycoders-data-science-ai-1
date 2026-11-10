@@ -40,17 +40,19 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 | Zadanie | Status | Uwagi |
 | --- | --- | --- |
 | `airflow/compose.yaml`: Airflow standalone 3.4.0, metadane w PostgreSQL | ✅ | Limit 2 GB RAM i 1,5 CPU. DAG-i i kod read-only. Dane Parquet read-only. Sieć `retaildw_default`, host `postgres`. Wymaga działającego stacku RetailDW. |
-| `airflow/config/bc01.yaml` (horyzont, top 20, założenie o promocjach, ziarno) | ✅ | Progi alarmu WAPE i bias są `null`, do ustalenia (patrz pytanie 3). |
+| `airflow/config/bc01.yaml` (horyzont, top 20, założenie o promocjach, ziarno) | ✅ | Progi alarmu są TESTOWE: WAPE 0,30, bias 0,10. Użytkownik je zmieni później (patrz pytanie 3). |
+| `airflow/.env.example` (wzorzec sekretów, bez wartości) | ✅ | Kopiuj do `airflow/.env` i uzupełnij `change-me`. Plik `.env` jest w `.gitignore`. Ten wzorzec nie zawiera żadnych wartości. |
 | Start Airflow i sprawdzenie połączenia z bazą `airflow` | ✅ | `airflow db check` OK, kontener `healthy`, `dags list-import-errors` bez błędów. Start: `docker compose up -d` w `airflow/`. |
 
 ### Faza 3: Kod wspólny
 | Zadanie | Status | Uwagi |
 | --- | --- | --- |
-| `airflow/src/bc01/`: wczytanie danych „as of” (sekcja 3) | ⏳ | Dane do originu, bez danych po originie. |
-| Transformacje (sekcja 5) | ⏳ | |
-| Baseline B1 i metody M1, M2, analogi (sekcja 6) | ⏳ | M2 jest wynikiem do zapisu. Sekcja 4 zostaje poza kodem produkcyjnym. |
-| Wyniki i flagi (sekcja 7) | ⏳ | |
-| Testy kontraktu „as of” | ⏳ | |
+| `airflow/src/bc01/data.py`: wczytanie danych „as of” (sekcja 3), agregacja tygodniowa, top N | ✅ | Filtr `Date < origin`, origin musi być poniedziałkiem. Tylko warstwa wspólna, nie pełny potok. |
+| `airflow/src/bc01/baseline.py`: B1 (średnia 4 tygodni x 4) | ✅ | Uproszczenie: brak zer przed startem serii i brak uzupełnień kalendarza z notebooka. Do zgodności z CSV w fazie 5. |
+| Transformacje (sekcja 5) | ⏳ | Wykrywanie braków towaru, reguły zer, kalendarz. |
+| Metody M1, M2 (LightGBM), analogi, B2 (sekcja 6) | ⏳ | M2 jest wynikiem do zapisu. Sekcja 4 zostaje poza kodem produkcyjnym. |
+| Przedziały i wyniki, flagi (sekcja 7) | ⏳ | |
+| Testy kontraktu „as of” i B1 | ✅ | `airflow/tests/test_bc01_contract.py`, 4 testy przechodzą (pytest w venv poza repo). |
 
 ### Faza 4: DAG-i
 | Zadanie | Status | Uwagi |
@@ -87,4 +89,4 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 ## Otwarte pytania
 1. Przedział 80% jest na sumie 4 tygodni. Czy DAG ma też publikować przedziały tygodniowe?
 2. Widok w `reporting` dla wyników prognoz: dodać jako `V027`?
-3. Progi alarmu monitoringu (WAPE i bias): notebook i ticket ich nie podają. Do ustalenia ze zleceniodawcą; w `airflow/config/bc01.yaml` są `null`.
+3. Progi alarmu monitoringu (WAPE i bias): notebook i ticket ich nie podają. Obecnie w `airflow/config/bc01.yaml` są wartości TESTOWE: WAPE 0,30, bias 0,10. Użytkownik je zmieni później.
