@@ -1,0 +1,69 @@
+# Commity - chronologicznie
+
+Format: data - czas - shorthash - message
+
+- 2026-11-08 - 16:38:32 - 8c6a89d - Initial commit
+- 2026-11-09 - 09:28:27 - 80d4b1d - Firma Nordvik
+- 2026-11-09 - 09:32:58 - 91ed7e7 - EX01 - przykładowe dokumenty
+- 2026-11-09 - 10:55:48 - 0ea3ed0 - Dobrej jakości prompt - Wąski kontekst, Rola, Cel nadrzędny, Instrukcje, Zasady, Format/Ouput, Przykłady
+- 2026-11-09 - 11:11:08 - 6c48a8f - PostMortem - co nauczyliśmy się w ten rozmowie - zapisz dobre praktyki na przyszłośc!
+- 2026-11-09 - 11:51:21 - 2ffc949 - E02 - Skad sie bierze liczba
+- 2026-11-09 - 11:51:30 - 5894cb0 - Merge branch 'main' of https://github.com/ev45ive/infoshare-silkycoders-data-science-ai-1
+- 2026-11-09 - 12:15:48 - eb405e0 - E02-B - pole „sprzedaż po korektach”
+- 2026-11-09 - 12:16:20 - fdd4251 - Odpowiedź na emaila marty - Biznesowo!
+- 2026-11-09 - 12:37:52 - b499805 - Format - tablea, podpunkty, diagram, mniej prozy, skanowalne...
+- 2026-11-09 - 12:39:32 - 907a444 - P01-O3 - Zmiany w danych przed nowym sezonem
+- 2026-11-09 - 12:46:27 - 1657174 - Rożne rodzaje diagramów meramaid
+- 2026-11-09 - 13:56:13 - c13dde9 - Human-In-The-Loop - AI zna proces, prowadzi za ręke, zadaje pytania, podaje sugestie, proponuje rozwiążania, rejestuje kontekst...
+- 2026-11-09 - 14:31:23 - 0002087 - Local harness, copilot-instructions, AGENTS.md, CLAUDE.md
+- 2026-11-09 - 14:46:02 - f80811f - AGENTS.md
+- 2026-11-09 - 15:02:53 - 9c8eafe - Agents, prompt, instrukcja
+- 2026-11-09 - 15:06:38 - 4dc3dd0 - P01-04 - Integracja z partnerami
+- 2026-11-09 - 15:07:40 - e0d912c - Merge branch 'main' of https://github.com/ev45ive/infoshare-silkycoders-data-science-ai-1
+- 2026-11-09 - 15:23:02 - 2ea8574 - SKILL - Walk the walk, do all steps, verify -> /crate-skill -> verify, test, change, ... -> Publish ;-)
+- 2026-11-09 - 15:47:05 - 48473c9 - WIP: partner-import skill (krok 0 inicjalizacja, sprawdzenie openpyxl, pytania vscode_askQuestions)
+- 2026-11-09 - 15:57:44 - 456cef1 - SKILL partnerzy - utworzone profile - agent juz zna strukture i zasady na przyszłosc. - otwarte pytania do analizy TODO WIP
+- 2026-11-09 - 16:06:07 - 378914a - SKILL - zapisz decyzje do pliku, zrób commit, uruchom, zapisz wyniki -  zostawiamy? czy cofamy git i próbujemy inne decyzje/parametry od Snapshota? :-)
+- 2026-11-10 - 08:20:39 - 0d0a662 - Baza danych
+- 2026-11-10 - 08:20:48 - ec1f986 - Merge branch 'main' of https://github.com/ev45ive/infoshare-silkycoders-data-science-ai-1
+- 2026-11-10 - 08:44:06 - 8cd6385 - Extensions .json
+- 2026-11-10 - 09:10:16 - dac114e - Pokaż jak używać X -> /create-instructions
+- 2026-11-10 - 09:10:22 - 43cd77b - Partners
+- 2026-11-10 - 09:33:35 - ba14574 - dobre praktyki + nasze praktyki + proces / kroki / instrukcje -> /create-skill
+- 2026-11-10 - 09:37:52 - f2bf967 -  BC-01 — Prognoza popytu tygodniowego: przebieg analizy krok po kroku
+- 2026-11-10 - 09:38:03 - 9bd6676 - Merge branch 'main' of https://github.com/ev45ive/infoshare-silkycoders-data-science-ai-1
+- 2026-11-10 - 09:39:48 - 3af5569 - Dataset BC01
+- 2026-11-10 - 09:46:28 - 5de3ae7 - Wszystkie data-sets
+- 2026-11-10 - 10:38:55 - e317e0b - Zgłoszenia i Analizy
+- 2026-11-10 - 10:43:51 - d98d143 - Analiza - bc01-prognoza-popytu
+- 2026-11-10 - 10:55:48 - 571cbe4 - Analiza 1 działa
+- 2026-11-10 - 10:57:05 - bfc125a - BC-01 - analiza regularna z airflow
+- 2026-11-10 - 10:57:09 - 93c534f - Merge branch 'main' of https://github.com/ev45ive/infoshare-silkycoders-data-science-ai-1
+- 2026-11-10 - 11:27:09 - 57e3d59 - WIP: BC-01 Airflow - schemat forecast (V026), rola airflow, handoff
+- 2026-11-10 - 11:28:14 - ce00aa0 - Plan Airflow + Handoff + Progress
+- 2026-11-10 - 11:40:41 - 9bcd8e6 - /create-prompt handoff
+- 2026-11-10 - 11:46:39 - 83e32da - WIP: BC-01 Airflow - faza 2 (compose, config, env.example), faza 3 (data as-of, B1, testy)
+- 2026-11-10 - 11:48:04 - 2143c0b - WIP: BC-01 handoff - potwierdzone decyzje D-02/D-03, ścieżka pytest
+- 2026-11-10 - 11:50:40 - 32dc212 - WIP: BC-01 Airflow - faza 3 kalendarz, panel, flagi braku towaru, zgodnosc z CSV
+- 2026-11-10 - 11:53:24 - 2c602f2 - WIP: BC-01 Airflow - zamkniecie Q-04 (dane od 2025)
+- 2026-11-10 - 11:57:25 - 32e33c7 - WIP: BC-01 Airflow - holidays==0.108 w _PIP_ADDITIONAL_REQUIREMENTS
+- 2026-11-10 - 12:00:19 - 2f8611d - Custom Agents (Chatmodes) vs sub-agents
+- 2026-11-10 - 12:03:09 - efb6566 - WIP: BC-01 features (YI cleaning, aggregates, feature_rows, week calendar) + tests
+- 2026-11-10 - 12:09:26 - 7176677 - WIP: BC-01 M1 ETS + cache verification
+- 2026-11-10 - 13:12:00 - 5842821 - WIP: BC-01 M2 LightGBM (cache test still failing: disc feature)
+- 2026-11-10 - 13:23:39 - 6b11d22 - WIP: BC-01 M2 verified against CSV, cache test for no-disc keys, handoff
+- 2026-11-10 - 13:28:39 - 40edda6 - Analizy 3,4 i 5
+- 2026-11-10 - 13:29:17 - c372713 - Merge branch 'main' of https://github.com/ev45ive/infoshare-silkycoders-data-science-ai-1
+- 2026-11-10 - 13:32:12 - a618911 - WIP: BC-01 Airflow DAG, pipeline, store, custom image (not yet re-verified, HANDOFF not updated)
+- 2026-11-10 - 13:32:21 - 6ecebce - AI sessions
+- 2026-11-10 - 13:33:06 - 7b63e7e - Merge branch 'main' of https://github.com/ev45ive/infoshare-silkycoders-data-science-ai-1
+- 2026-11-10 - 13:45:09 - 01c8a3b - WIP: BC-01 handoff updated (DAG, pipeline, decisions, open questions)
+- 2026-11-10 - 14:01:22 - e182e27 - Database instructions - use psql tool
+- 2026-11-10 - 14:02:10 - bb49684 - Airflow + Testy z @browser
+- 2026-11-10 - 14:02:29 - dd6eb87 - Add history of git pull with merge, installation and execution instructions, and PostgreSQL connection guidelines; update bc04-sell-through notebook with error handling and environment adjustments
+- 2026-11-10 - 14:06:35 - 4357e27 - Zgłoszenie - dodajemy mlflow
+- 2026-11-10 - 14:06:39 - 691250f - Merge branch 'main' of https://github.com/ev45ive/infoshare-silkycoders-data-science-ai-1
+- 2026-11-10 - 14:13:57 - a9accfe - Agent handoffs - 1 click handoff do usatalonego agenta z promptem
+- 2026-11-10 - 14:27:07 - f8a10f4 - Agent/Model as a Service - usługa analityczna - Plan
+- 2026-11-10 - 14:27:11 - 312178c - Merge branch 'main' of https://github.com/ev45ive/infoshare-silkycoders-data-science-ai-1
+- 2026-11-10 - 14:49:43 - 4ad8ea5 - Analiza nr 9
