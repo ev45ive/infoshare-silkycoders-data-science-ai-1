@@ -85,7 +85,7 @@ def chat(messages, tools=None, label="", model=None, max_tokens=1200):
     """Jedno wywołanie. Zwraca (message, tokens_in, tokens_out). Temperatura 0 i stałe ziarno (nie gwarantują identyczności)."""
     check_budget()
     # Temperatura 0 i stałe ziarno zmniejszają rozrzut odpowiedzi, ale go nie usuwają (dwa przebiegi tych samych pytań mogą się różnić).
-    kw = dict(model=model or config.LLM_MODEL, messages=messages, temperature=0, seed=7, max_tokens=max_tokens)
+    kw = dict(model=model or config.LLM_MODEL, messages=messages, temperature=0, seed=7, max_completion_tokens=max_tokens)   # gpt-5.x odrzuca max_tokens
     if tools:
         kw["tools"] = tools
     r = client().chat.completions.create(**kw)

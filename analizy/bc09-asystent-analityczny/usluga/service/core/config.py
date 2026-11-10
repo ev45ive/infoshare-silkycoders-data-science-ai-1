@@ -26,7 +26,7 @@ COLUMN_WARNINGS = {
 
 # Limity agenta
 MAX_STEPS = 8                  # maks. wywołań narzędzi na pytanie
-LLM_MODEL = "gpt-4.1-mini"
+LLM_MODEL = "gpt-5.4-mini"          # projekt OpenAI nie ma dostępu do gpt-4.1-mini
 EMBED_MODEL = "text-embedding-3-small"
 TOTAL_TOKEN_LIMIT = 3_000_000  # łączny twardy limit (wejście + wyjście) dla BC-09, wszystkie sesje
 PER_QUESTION_TOKEN_LIMIT = 60_000
