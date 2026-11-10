@@ -2,11 +2,32 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 
 SALES_COLUMNS = ["DateKey", "ProductKey", "StoreKey", "Quantity"]
+
+
+@dataclass(frozen=True)
+class Catalog:
+    models: list[str]              # wszystkie StyleCode, posortowane (jak styles w notebooku)
+    store_keys: list[int]
+    store_code: dict[int, str]
+    basic: set[str]                # modele z kolekcji BASIC (start serii = 0)
+
+
+def load_catalog(data_dir: Path) -> Catalog:
+    products = pd.read_parquet(data_dir / "dim_product.parquet", columns=["StyleCode"])
+    stores = pd.read_parquet(data_dir / "dim_store.parquet", columns=["StoreKey", "StoreCode"])
+    plan = pd.read_parquet(data_dir / "merch_plan.parquet", columns=["StyleCode", "Collection"])
+    return Catalog(
+        models=sorted(products["StyleCode"].unique()),
+        store_keys=sorted(int(k) for k in stores["StoreKey"]),
+        store_code={int(k): c for k, c in zip(stores["StoreKey"], stores["StoreCode"])},
+        basic=set(plan.loc[plan["Collection"] == "BASIC", "StyleCode"]),
+    )
 
 
 def load_sales(data_dir: Path, origin: pd.Timestamp) -> pd.DataFrame:
@@ -22,7 +43,7 @@ def load_sales(data_dir: Path, origin: pd.Timestamp) -> pd.DataFrame:
     df = sales.merge(dates, on="DateKey", how="inner").merge(products, on="ProductKey", how="inner")
     df["Date"] = pd.to_datetime(df["Date"]).dt.normalize()
     df = df[df["Date"] < origin].copy()
-    df["week_start"] = df["Date"] - pd.to_timedelta(df["Date"].dt.weekday, unit="D")
+    df["week_start"] = df["Date"] - pd.to_timedelta(df["Date"].dt.day_of_week, unit="D")
     return df.rename(columns={"StyleCode": "model", "StoreKey": "store_key", "Quantity": "qty"})[
         ["week_start", "model", "store_key", "qty"]
     ]
