@@ -3,21 +3,28 @@
 Ostatnia aktualizacja: 2026-11-10. Ścieżki względem katalogu głównego repozytorium.
 
 ## Następny krok
-Uzupełnić Fazę 3 o transformacje i metody M1 oraz M2 (sekcje 5 i 6 notebooka) w `airflow/src/bc01/`, potem porównać B1 z `analizy/bc01-prognoza-popytu/prognoza-W39-W42-top20.csv`. Sprawdzenie: `cd airflow && PYTHONPATH=src /tmp/bc01-test-venv/bin/python -m pytest -q tests`.
+Napisać drugi DAG `airflow/dags/bc01_monitoring_dokladnosci.py` (WAPE i bias M2 oraz B1 względem rzeczywistości) w nowych plikach, nie ruszając `pipeline.py`, `store.py` ani pierwszego DAG-a. Najpierw ustalić z użytkownikiem Q-08 (gdzie zapisać wyniki) oraz kiedy wolno uruchamiać backfill historycznych origin. Sprawdzenie stanu wyjściowego: `cd airflow && PYTHONPATH=src /tmp/bc01-test-venv/bin/python -m pytest -q tests` — oczekiwany wynik: 25 passed.
 
 ## Kryteria akceptacji
 - Cel: cotygodniowa prognoza BC-01 zapisywana w `forecast.*`, z monitoringiem WAPE i bias oraz alarmem.
 - Kryteria akceptacji:
-  - [ ] Dane wczytane tylko sprzed originu (test kontraktu przechodzi)
-  - [ ] B1 zgodny z CSV referencyjnym w fazie 5
-  - [ ] Dwa uruchomienia tego samego tygodnia dają identyczne wyniki
-  - [ ] `airflow dags list-import-errors` bez błędów
+  - [x] Dane wczytane tylko sprzed originu (test kontraktu przechodzi)
+  - [x] B1 zgodny z CSV referencyjnym (tolerancja 0,05, zaokrąglenie CSV)
+  - [x] M2 dla origin 2026-09-21 zgodny z CSV (maks. 3,2%, suma 0,01%)
+  - [ ] Dwa uruchomienia tego samego tygodnia dają identyczne wyniki (częściowo: runy 2 i 4 mają tę samą sumę 39 638,4 szt. i po 120 wierszy; porównanie wiersz po wierszu do zrobienia)
+  - [x] `airflow dags list-import-errors` bez błędów (sprawdzone 2026-11-10: `No data found`)
+  - [ ] Przedziały p10/p90 (obecnie p10 = p90 = prognoza)
+  - [ ] DAG monitoringu z WAPE, bias i alarmem
+  - [ ] Backfill historyczny
 
 ## Źródła
 | Źródło | Ścieżka | Do czego służy |
 | --- | --- | --- |
 | Ticket | `zgloszenia/Analizy/BC-01-prognoza-popytu--airflow.md` | Specyfikacja (poza zakresem agenta bez przekazania pliku) |
-| Notebook | `analizy/bc01-prognoza-popytu/bc01-prognoza-popytu.ipynb` | Źródło logiki |
+| Notebook | `analizy/bc01-prognoza-popytu/bc01-prognoza-popytu.ipynb` 
+| Obraz Airflow | `airflow/Dockerfile` | Obraz bazowy 3.4.0 + `holidays`, `python-dateutil`, `lightgbm==4.7.0`, `libgomp1` |
+| DAG prognozy | `airflow/dags/bc01_prognoza_tygodniowa.py` | Poniedziałki, parametr `origin_date` do uruchomień ręcznych |
+| Potok | `airflow/src/bc01/pipeline.py`, `airflow/src/bc01/store.py` | Obliczenie prognozy (M2, B1, flagi) i zapis do `forecast.*` || Źródło logiki |
 | Wynik referencyjny | `analizy/bc01-prognoza-popytu/prognoza-W39-W42-top20.csv` | Punkt odniesienia |
 | SQL agregacji | `analizy/bc01-prognoza-popytu/sql/weekly_sales_style_store.sql` | Definicja tygodniowej sprzedaży |
 | Konfiguracja | `airflow/config/bc01.yaml` | Parametry (horyzont, top 20, progi testowe) |
@@ -26,7 +33,11 @@ Uzupełnić Fazę 3 o transformacje i metody M1 oraz M2 (sekcje 5 i 6 notebooka)
 ## Ograniczenia
 - Hasła i klucze nie trafiają do plików, argv ani czatu. Przechowywane tylko w `airflow/.env` (w `.gitignore`).
 - Zmiana hasła roli `airflow` (`ALTER ROLE`) wymaga potwierdzenia.
-- Zmiany schematu tylko przez nową migrację, po potwierdzeniu użytkownika. Nie edytować zastosowanych migracji.
+- Zmiany schematu tylko przez n, `.specstory/` ani plików cache (`analizy/bc01-prognoza-popytu/cache/`). Commit WIP po każdej turze, tylko z jawnymi ścieżkami `git add`.
+- Użytkownik testuje pierwszy DAG ręcznie równolegle z pracą agenta. Nie zmieniać `pipeline.py`, `store.py`, `data.py` ani pierwszego DAG-a bez uprzedzenia (kolejne runy użyją zmienionego kodu).
+- Przebudowa lub restart kontenera Airflow (zmiana `Dockerfile`) przerywa trwające runy: tylko po zgodzie użytkownika.
+- Pierwszy DAG ma `max_active_runs=1`: backfill ustawia się w kolejce razem z testami użytkownika i dopisuje wiersze do `forecast.*`. Backfill tylko po sygnale użytkownika.
+- Nie zapisywać notebookowego CSV z Airflow. `analizy/bc01-prognoza-popytu/prognoza-W39-W42-top20.csv` pozostaje punktem odniesieniaową migrację, po potwierdzeniu użytkownika. Nie edytować zastosowanych migracji.
 - Nie czytać `.specstory/`, `notatki/`, `docs/ai-sessions/`. `zgloszenia/` tylko po przekazaniu pliku przez użytkownika.
 - Sekcja 4 notebooka (eksploracja) nie trafia do kodu produkcyjnego.
 - Nie commitować `airflow/.env`.
@@ -34,6 +45,9 @@ Uzupełnić Fazę 3 o transformacje i metody M1 oraz M2 (sekcje 5 i 6 notebooka)
 ## Rejestr decyzji
 | ID | Data | Decyzja | Uzasadnienie | Zatwierdził | Status |
 | --- | --- | --- | --- | --- | --- |
+| D-05 | 2026-11-10 | Uruchamiać DAG „tak jak jest”, mimo rozbieżności backtestu M2 z cache (cecha `disc`) | Rozbieżność nie dotyczy prognozy bieżącej (zgodność z CSV do 3,2%), chcemy zobaczyć działanie przepływu | użytkownik | przyjęta |
+| D-06 | 2026-11-10 | Własny obraz (`airflow/Dockerfile`) zamiast `_PIP_ADDITIONAL_REQUIREMENTS` | `lightgbm` wymaga `libgomp1` (pakiet systemowy); pin w czasie budowy zamiast przy starcie | agent | do potwierdzenia przez użytkownika |
+| D-07 | 2026-11-10 | `CODE_VERSION = "m2-wip-no-intervals"`, p10 = p90 = prognoza do czasu przedziałów | Schemat wymaga p10 ≤ prognoza ≤ p90 (NOT NULL); wartości tymczasowe | agent | tymczasowa |
 | D-01 | 2026-11-10 | Metadane Airflow w PostgreSQL (baza `airflow`, rola `airflow`) | Decyzja użytkownika zamiast SQLite | użytkownik | przyjęta |
 | D-02 | 2026-11-10 | Dane wejściowe z Parquet, nie z RetailDW | `merch_plan` nie istnieje w RetailDW | użytkownik | przyjęta |
 | D-03 | 2026-11-10 | Przedział 80% liczony na sumie 4 tygodni | Tak jest w `analizy/bc01-prognoza-popytu/prognoza-W39-W42-top20.csv` | użytkownik | przyjęta |
@@ -79,7 +93,7 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 ### Faza 2: Konfiguracja Airflow
 | Zadanie | Status | Uwagi |
 | --- | --- | --- |
-| `airflow/compose.yaml`: Airflow standalone 3.4.0, metadane w PostgreSQL | ✅ | Limit 2 GB RAM i 1,5 CPU. DAG-i i kod read-only. Dane Parquet read-only. Sieć `retaildw_default`, host `postgres`. Wymaga działającego stacku RetailDW. |
+| `airflow/compose.yaml`: Airflow standalone 3.4.0, metadane w PostgreSQL | ✅ | Limit 2 GB RAM i 1,5 CPU. DAG-i i kod read-only. Dane Parquet read-only. Sieć `retaildw_default`, host `postgres`. Obraz budowany z `airflow/Dockerfile` (D-06), `BC01_DB_PASSWORD` z `airflow/.env`. Wymaga działającego stacku RetailDW. |
 | `airflow/config/bc01.yaml` (horyzont, top 20, założenie o promocjach, ziarno) | ✅ | Progi alarmu są TESTOWE: WAPE 0,30, bias 0,10. Użytkownik je zmieni później (patrz pytanie 3). |
 | `airflow/.env.example` (wzorzec sekretów, bez wartości) | ✅ | Kopiuj do `airflow/.env` i uzupełnij `change-me`. Plik `.env` jest w `.gitignore`. Ten wzorzec nie zawiera żadnych wartości. |
 | Start Airflow i sprawdzenie połączenia z bazą `airflow` | ✅ | `airflow db check` OK, kontener `healthy`, `dags list-import-errors` bez błędów. Start: `docker compose up -d` w `airflow/`. |
@@ -94,24 +108,31 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 | `airflow/src/bc01/stockouts.py`: flagi podejrzenia braku towaru (port komórki 50) | ✅ | Test syntetyczny w `test_bc01_data_layer.py`. Brak jeszcze czyszczenia `YI`. |
 | `load_catalog` w `data.py` (modele, lokalizacje, kolekcja BASIC z `merch_plan`) | ✅ | Używane przez test zgodności z CSV. |
 | Zgodność B1 i flag z `prognoza-W39-W42-top20.csv` (origin 2026-09-21) | ✅ | 120 wierszy, B1 w tolerancji 0,05 (CSV zaokrąglony do 1 miejsca), flagi identyczne. Test pomijany bez danych. |
-| Transformacje (sekcja 5): czyszczenie `YI`, reguły zer | ⏳ | `YI[F] = E[F]` jeszcze nie przeniesione. |
-| Metody M1, M2 (LightGBM), analogi, B2 (sekcja 6) | ⏳ | M2 jest wynikiem do zapisu. Sekcja 4 zostaje poza kodem produkcyjnym. |
-| Przedziały i wyniki, flagi (sekcja 7) | ⏳ | |
+| `airflow/src/bc01/features.py`: czyszczenie `YI` (`clean_sales`), `aggregates` (MT, CT), `feature_rows` (port komórek 48–52) | ✅ | Testy w `test_bc01_features.py`: tylko oflagowane tygodnie zmieniane w `YI`, brak wycieku z tygodni ≥ origin do cech. Zgodność M1/M2 z cache jeszcze do sprawdzenia. |
+| Kalendarz tygodniowy: `special_days`, `week_calendar` w `calendar.py` | ✅ | Cechy `wk_*`, dni otwarcia, niedziele handlowe, `holidays_monsat`. |
+| Reguły zer (sekcja 5) | ⏳ | Do przeniesienia razem z M1. |
+| `airflow/src/bc01/m1.py`: indeks sezonowy (`season_index`) i ETS tłumiony (`forecast_m1`), port komórki 65 | ✅ | `test_bc01_m1.py`: test zgodności z `cache/m1_forecasts_v1.npz` (18 origin, P i FB) przechodzi w tolerancji 1e-6; syntetyczne: NaN przed startem, flaga fb przy krótkiej historii. Ograniczenie: indeks sezonowy ma stałe okno 2025-W02…2026-W01, poprawny dla origin od 2026-W02; dla wcześniejszych origin wymagałby innego okna. |
+| `load_model_meta` w `data.py` (kategoria, kolekcja, LaunchDate) | ✅ | Źródło: `dim_product.Category`, `merch_plan`. |
+| `airflow/src/bc01/m2.py`: `build_rows`, `fit_predict` (LightGBM Poisson, 31 cech, `num_leaves` 15, 600 drzew), `load_weekly_discount` w `data.py` | ✅ | Prognoza końcowa (origin 2026-09-21) zgodna z CSV: 120 serii, maks. różnica 3,2%, mediana 0,6%, suma 0,01%. Klucze cache `m2_runs_v1.pkl` bez cechy `disc` odtwarzają się dokładnie. Klucze z `disc` NIE (do 14%): przyczyna nieustalona, definicja `disc` zgodna z SQL i notebookiem. Patrz pytanie 7. |
+| Analogi (M3), B2 (sekcja 6) | ⏳ | Potrzebne do przedziałów. Sekcja 4 zostaje poza kodem produkcyjnym. |
+| Przedziały p10/p90 (`interval_calib`, `calib_gamma`, `interval_g`, komórka 83) | ⏳ | Obecnie p10 = p90 = prognoza (D-07). Kalibrowane na backtestcie, więc wrażliwe na rozbieżność z cache (pytanie 7). |
+| `airflow/src/bc01/pipeline.py`: `compute_forecast` (M2 + B1 + flagi, top N) | ✅ | `test_bc01_pipeline.py`. Flagi liczone własnymi regułami (nowy model: wiek ≤ 6 tyg., możliwy brak towaru: flaga w ostatnich 2 tyg., niska pewność: suma < 20). Zgodność flag z CSV NIE sprawdzona; w notebooku niska pewność uwzględnia też szerokość przedziału (do potwierdzenia, pytanie 9). |
+| `airflow/src/bc01/store.py`: zapis do `forecast.*` | ✅ | Hasło tylko z `BC01_DB_PASSWORD`. |
 | Testy kontraktu „as of” i B1 | ✅ | `airflow/tests/test_bc01_contract.py`, 4 testy przechodzą (pytest w venv poza repo). |
 
 ### Faza 4: DAG-i
 | Zadanie | Status | Uwagi |
 | --- | --- | --- |
-| `airflow/dags/bc01_prognoza_tygodniowa.py` | ⏳ | Poniedziałki. Zapis do `forecast.*` z wersją konfiguracji i kodu. |
-| `airflow/dags/bc01_monitoring_dokladnosci.py` | ⏳ | WAPE i obciążenie względem B1. Alarm po przekroczeniu progu. |
-| Backfill historyczny | ⏳ | Ręczne uruchomienie z parametrem daty. |
+| `airflow/dags/bc01_prognoza_tygodniowa.py` | 🚧 | Działa: zarejestrowany, bez błędów importu, runy 2 i 4 (origin 2026-09-21) `ok`, po 120 wierszy w `series_forecast` i 480 w `weekly_units`, suma 39 638,4 szt. Runy 1 i 3 (origin 2026-11-09) `failed` zgodnie z walidacją: dane kończą się 2026-09-20. Brak przedziałów (D-07). Czytelność komunikatu błędu w logu do oceny przez użytkownika. |
+| `airflow/dags/bc01_monitoring_dokladnosci.py` | ⏳ | WAPE i obciążenie M2 oraz B1. Alarm po przekroczeniu progu (testowe 0,30 i 0,10). Wymaga historii: najpierw backfill. Reguły oceny (serie i tygodnie w WAPE) do przeniesienia z komórki 54 notebooka. Kolumna `baseline_b1_units_total` jest wypełniana przez potok. |
+| Backfill historyczny | ⏳ | Ręczne uruchomienie z parametrem daty, np. origin 2026-01-05…2026-08-24. Ostatni origin z dostępną rzeczywistością: 2026-08-24. Dla origin przed 2026-W02 M1 byłby nieważny, ale pierwszy DAG używa tylko M2. Tylko po sygnale użytkownika (Ograniczenia). |
 
 ### Faza 5: Weryfikacja
 | Zadanie | Status | Uwagi |
 | --- | --- | --- |
-| `airflow dags list-import-errors` i testy DAG-ów | ⏳ | |
-| Zgodność z `prognoza-W39-W42-top20.csv` | ⏳ | |
-| Dwa uruchomienia tego samego tygodnia dają identyczne wyniki | ⏳ | Powtarzalność. |
+| `airflow dags list-import-errors` i testy DAG-ów | ✅ | Sprawdzone 2026-11-10: `No data found`; testy `test_bc01_pipeline.py` przechodzą. |
+| Zgodność z `prognoza-W39-W42-top20.csv` | 🚧 | M2 i B1 zgodne (patrz kryteria). Flagi i przedziały: nie sprawdzone / niezaimplementowane. |
+| Dwa uruchomienia tego samego tygodnia dają identyczne wyniki | 🚧 | Zgodna suma i liczba wierszy (runy 2 i 4). Porównanie wiersz po wierszu do zrobienia. |
 | Flagi i alarm na danych historycznych | ⏳ | |
 
 ## Ustalenia techniczne z fazy 1
@@ -126,27 +147,47 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
   Uruchamiać z `databases/RetailDW-postgres/`. Ponowne uruchomienie zmienia hasło w bazie, więc nowe hasło trzeba zapisać w `airflow/.env`.
 
 ## Jak weryfikować
-- `docker compose ps --format '{{.Health}}'` (w `airflow/`) — oczekiwany wynik: `healthy`
+- `docker compose ps --format '{{.Service}} {{.Status}}'` (w `airflow/`) — oczekiwany wynik: `airflow Up ... (healthy)`
 - `docker compose exec -T airflow airflow dags list-import-errors` — oczekiwany wynik: `No data found`
-- `PYTHONPATH=src /tmp/bc01-test-venv/bin/python -m pytest -q tests` (w `airflow/`) — oczekiwany wynik: 10 passed. Venv tymczasowy: pandas, pyarrow, pytest, numpy, python-dateutil, holidays; w razie braku odtworzyć.
+- `docker compose exec -T airflow airflow dags list | grep bc01` — oczekiwany wynik: `bc01_prognoza_tygodniowa`
+- `PYTHONPATH=src /tmp/bc01-test-venv/bin/python -m pytest -q -rs tests` (w `airflow/`) — oczekiwany wynik: 25 passed, bez pominięć. Venv tymczasowy: `python3 -m venv /tmp/bc01-test-venv && /tmp/bc01-test-venv/bin/pip install -q pandas pyarrow pytest numpy python-dateutil holidays statsmodels lightgbm scikit-learn`.
+- W `databases/RetailDW-postgres/`: `docker compose exec -T postgres psql -U postgres -d retaildw -c "select run_id, origin_date, status, code_version from forecast.run order by 1;"` — oczekiwany wynik: runy dla origin 2026-09-21 ze statusem `ok` (kod `m2-wip-no-intervals`), dla 2026-11-09 `failed`.
+- Uruchomienie ręczne: UI Airflow `http://127.0.0.1:8080`, DAG `bc01_prognoza_tygodniowa`, parametr `origin_date` (poniedziałek, np. `2026-09-21`) — oczekiwany wynik: run `ok` w kilka sekund.
 
 ## Pliki
 - `databases/RetailDW-postgres/db/migrations/V026__create_forecast_schema.sql`
 - `databases/RetailDW-postgres/db/airflow-setup.sql`
 - `airflow/.env` (lokalny, nie w repo, zawiera hasło)
 - `airflow/HANDOFF.md` (ten plik)
-- `airflow/src/bc01/calendar.py`, `panel.py`, `stockouts.py`, `load_catalog` w `data.py`
+- `airflow/src/bc01/features.py`, `airflow/tests/test_bc01_features.py`
+- `airflow/src/bc01/calendar.py`, `panel.py`, `stockouts.py`, `load_catalog` i `load_model_meta` w `data.py`
+- `airflow/src/bc01/m1.py`, `airflow/tests/test_bc01_m1.py`
 - `airflow/tests/test_bc01_data_layer.py`
+- `airflow/src/bc01/m2.py`, `airflow/tests/test_bc01_m2.py`, `load_weekly_discount` w `data.py` (2026-11-10)
+- `airflow/src/bc01/pipeline.py`, `airflow/src/bc01/store.py`, `airflow/tests/test_bc01_pipeline.py` (utworzone 2026-11-10)
+- `airflow/dags/bc01_prognoza_tygodniowa.py` (utworzony 2026-11-10)
+- `airflow/Dockerfile` (utworzony), `airflow/compose.yaml` (zmieniony: `build: .`, `BC01_DB_PASSWORD` z `.env`; 2026-11-10)
 
 ## Otwarte pytania
-1. Przedział 80% jest na sumie 4 tygodni. Czy DAG ma też publikować przedziały tygodniowe?
-2. Widok w `reporting` dla wyników prognoz: dodać jako `V027`?
-3. Progi alarmu monitoringu (WAPE i bias): notebook i ticket ich nie podają. Obecnie w `airflow/config/bc01.yaml` są wartości TESTOWE: WAPE 0,30, bias 0,10. Użytkownik je zmieni później.
-4. Q-04 zamknięte: dane zaczynają się w 2025, reguła niedziel handlowych dla wcześniejszych lat nie jest potrzebna.
-5. Zamknięte: `holidays==0.108` i `python-dateutil` dodane w `compose.yaml` przez `_PIP_ADDITIONAL_REQUIREMENTS` (decyzja użytkownika). Instalacja przy starcie kontenera; po zmianie wersji trzeba przebudować pin.
+| ID | Pytanie | Do kogo | Do czego potrzebne | Założenie tymczasowe |
+| --- | --- | --- | --- | --- |
+| 1 | Przedział 80% jest na sumie 4 tygodni. Czy DAG ma też publikować przedziały tygodniowe? | użytkownik | Przedziały | Tylko suma 4 tygodni (D-03) |
+| 2 | Widok w `reporting` dla wyników prognoz: dodać jako `V027`? | użytkownik | Konsumpcja wyników | Brak migracji V027 |
+| 3 | Progi alarmu monitoringu (WAPE i bias): notebook i ticket ich nie podają. | użytkownik | DAG monitoringu | Wartości TESTOWE z `airflow/config/bc01.yaml`: WAPE 0,30, bias 0,10 (D-04) |
+| 4 | Zamknięte: dane zaczynają się w 2025, reguła niedziel handlowych dla wcześniejszych lat nie jest potrzebna. | — | — | — |
+| 5 | Zamknięte: `holidays==0.108` i `python-dateutil` są w obrazie (pierwotnie przez `_PIP_ADDITIONAL_REQUIREMENTS`, obecnie w `airflow/Dockerfile`, D-06). | — | — | — |
+| 6 | `statsmodels` (M1, ETS tłumiony) NIE jest w obrazie (sprawdzone 2026-11-10: `ModuleNotFoundError`). Obecny DAG go nie importuje. Dodać z przypiętą wersją (lokalnie 0.15.0) do `airflow/Dockerfile`, gdy M1 trafi do potoku? | użytkownik | Analogi/przedziały lub monitoring z M1 | Bez M1 w potoku, bez zmiany obrazu |
+| 7 | Rozbieżność M2 z cache: przebiegi backtestu z cechą `disc` różnią się od `m2_runs_v1.pkl` (do 14%), choć wynik końcowy zgadza się z CSV. Możliwa przyczyna (NIE potwierdzona): cache ze starszej wersji notebooka. Ponowne uruchomienie notebooka dałoby odpowiedź. | użytkownik | Kalibracja przedziałów i porównanie WAPE z notebookiem | Kontynuować z własnym backtestem Airflow (D-05); liczby mogą się różnić od notebooka |
+| 8 | Gdzie zapisywać wyniki monitoringu: nowa tabela (migracja `V027`) czy tylko log i XCom? | użytkownik | DAG monitoringu | Log i XCom, bez migracji |
+| 9 | Definicje flag (nowy model: wiek ≤ 6 tyg.; brak towaru: flaga w ostatnich 2 tyg.; niska pewność: suma < 20) są moimi przybliżeniami. Czy zgadzają się z notebookiem (komórka 93, `niska_pewnosc` także z szerokością przedziału)? | do potwierdzenia | Zgodność z CSV | Jak w `pipeline.py`; porównać z CSV przed użyciem biznesowym |
+| 10 | Zatwierdzić własny obraz Airflow (D-06)? Zmiana wymaga odtworzenia kontenera. | użytkownik | Stabilność środowiska | Obecny obraz zostaje |
 
-Właściciel pytań Q-01…Q-03: użytkownik. Założenia tymczasowe: Q-01 tylko suma 4 tygodni; Q-02 brak migracji V027; Q-03 progi testowe z `bc01.yaml`.
+Właściciel pytań: użytkownik.
 
 ## Dziennik postępu
+- 2026-11-10 — zrobiono (etap DAG, faza 4): `pipeline.py` (`compute_forecast`), `store.py`, `bc01_prognoza_tygodniowa.py`, `Dockerfile`, zmiana `compose.yaml`, `test_bc01_pipeline.py`; sprawdzono: 25 testów przechodzi, kontener `healthy`, DAG zarejestrowany bez błędów importu, w `forecast.*` 2 przebiegi `ok` (origin 2026-09-21, po 120 wierszy, suma 39 638,4 szt.) i 2 `failed` (origin 2026-11-09, brak danych), w obrazie `lightgbm` 4.7.0, `scikit-learn` 1.9.1, `holidays` 0.108, brak `statsmodels`; commit `a618911`; otwarte: przedziały (M3, kalibracja), flagi vs CSV (pytanie 9), DAG monitoringu (pytanie 8), backfill, porównanie runów wiersz po wierszu, zatwierdzenie obrazu (pytanie 10).
+- 2026-11-10 — zrobiono (etap M2, faza 3): `m2.py`, `load_weekly_discount`, `test_bc01_m2.py`; sprawdzono: 22 testy przechodzą bez pominięć, prognoza końcowa zgodna z CSV (maks. 3,2%), cache bez `disc` dokładnie; otwarte: rozbieżność cache z `disc` (pytanie 7), M3, przedziały, DAG-i.
+- 2026-11-10 — zrobiono (etap M1, faza 3): `load_model_meta`, `m1.py` (`season_index`, `forecast_m1`), `test_bc01_m1.py`; sprawdzono: 17 testów przechodzi, w tym zgodność M1 z `m1_forecasts_v1.npz` dla 18 origin (tolerancja 1e-6, brak pominięć); otwarte: M2, M3, przedziały, DAG-i, `statsmodels` w kontenerze.
 - 2026-11-10 — zrobiono (etap danych, faza 3): `load_catalog`, `calendar.py`, `panel.py`, `stockouts.py`, testy `test_bc01_data_layer.py`; sprawdzono: 10 testów przechodzi, B1 i flagi zgodne z CSV dla origin 2026-09-21; otwarte: YI, features, M1, M2, M3, przedziały, DAG-i; Q-04, zależność `holidays`.
+- 2026-11-10 — zrobiono (etap cech, faza 3): `features.py` (`clean_sales`, `aggregates`, `feature_rows`), `week_calendar`, `test_bc01_features.py`; sprawdzono: 14 testów przechodzi (w tym brak wycieku z tygodni ≥ origin); commit `efb6566`; otwarte: M1, M2, M3, przedziały, DAG-i.
 - 2026-11-10 — zrobiono: migracja V026, rola `airflow`, `.env.example`, Compose, `config/bc01.yaml`, `src/bc01/data.py` (as-of), `src/bc01/baseline.py` (B1), testy kontraktu, handoff zgodny z szablonem; sprawdzono: 4 testy przechodzą, `airflow db check` OK, kontener `healthy`, brak błędów importu DAG; commit `83e32da`; otwarte: M1/M2, DAG-i, Q-01…Q-03

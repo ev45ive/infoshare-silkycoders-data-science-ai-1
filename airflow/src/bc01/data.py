@@ -30,6 +30,16 @@ def load_catalog(data_dir: Path) -> Catalog:
     )
 
 
+def load_model_meta(data_dir: Path) -> pd.DataFrame:
+    """Kategoria, kolekcja i data premiery modelu (indeks: model, jak StyleCode w notebooku)."""
+    products = pd.read_parquet(data_dir / "dim_product.parquet", columns=["StyleCode", "Category"])
+    plan = pd.read_parquet(data_dir / "merch_plan.parquet", columns=["StyleCode", "Collection", "LaunchDate"])
+    meta = products.drop_duplicates("StyleCode").set_index("StyleCode").join(
+        plan.set_index("StyleCode"), how="left")
+    meta.index.name = "model"
+    return meta.rename(columns={"Category": "category", "Collection": "collection", "LaunchDate": "launch"})
+
+
 def load_sales(data_dir: Path, origin: pd.Timestamp) -> pd.DataFrame:
     """Zwraca sprzedaż (sztuki) z dniami przed origin, z kolumnami model i tydzień ISO."""
     origin = pd.Timestamp(origin).normalize()
@@ -47,6 +57,24 @@ def load_sales(data_dir: Path, origin: pd.Timestamp) -> pd.DataFrame:
     return df.rename(columns={"StyleCode": "model", "StoreKey": "store_key", "Quantity": "qty"})[
         ["week_start", "model", "store_key", "qty"]
     ]
+
+
+def load_weekly_discount(data_dir: Path, origin: pd.Timestamp) -> pd.DataFrame:
+    """Stopa rabatu modelu w tygodniu = SUM(DiscountAmount) / SUM(Quantity*UnitPrice) (sql/weekly_sales_style_store.sql)."""
+    origin = pd.Timestamp(origin).normalize()
+    sales = pd.read_parquet(data_dir / "fact_sales.parquet",
+                            columns=["DateKey", "ProductKey", "Quantity", "UnitPrice", "DiscountAmount"])
+    dates = pd.read_parquet(data_dir / "dim_date.parquet", columns=["DateKey", "Date"])
+    products = pd.read_parquet(data_dir / "dim_product.parquet", columns=["ProductKey", "StyleCode"])
+    df = sales.merge(dates, on="DateKey", how="inner").merge(products, on="ProductKey", how="inner")
+    df["Date"] = pd.to_datetime(df["Date"]).dt.normalize()
+    df = df[df["Date"] < origin].copy()
+    df["week_start"] = df["Date"] - pd.to_timedelta(df["Date"].dt.day_of_week, unit="D")
+    df["list_value"] = df["Quantity"] * df["UnitPrice"]
+    g = df.groupby(["week_start", "StyleCode"]).agg(list_value=("list_value", "sum"),
+                                                   discount=("DiscountAmount", "sum")).reset_index()
+    g["disc_rate"] = (g["discount"] / g["list_value"]).replace([float("inf"), float("-inf")], float("nan"))
+    return g.pivot(index="week_start", columns="StyleCode", values="disc_rate").sort_index()
 
 
 def weekly_matrix(sales: pd.DataFrame) -> pd.DataFrame:

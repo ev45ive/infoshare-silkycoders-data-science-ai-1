@@ -9,6 +9,8 @@ applyTo: "databases/**"
 - Hasła są tylko w `databases/RetailDW-postgres/.env`. Nie wpisuj ich do plików ani zapytań.
 - Analizy wykonuj jako `retaildw_ro` (odczyt), jeśli to możliwe.
 - Skrypt `retaildw.sh` nie ma prawa wykonania; uruchamiaj go przez `bash retaildw.sh <komenda>`.
+- Zawsze najpierw użyj narzędzi `mcp_pgsql-tools_*`: połącz się przez `pgsql_connect` (profil `RetailDW`), potem `pgsql_query`, `pgsql_db_context` itd.
+- Skryptów (`retaildw.sh`, `docker compose exec`, `psql`) i powłoki używaj tylko wtedy, gdy narzędzie `pgsql_*` jest niedostępne, zawiodło lub nie obsługuje operacji (np. `up`, `migrate`, `seed`, `load`, `reset`). Podaj wtedy powód.
 
 ## Schematy
 - `src`: dane surowe (`sales_raw`, `inventory_raw`, `returns_raw`).
