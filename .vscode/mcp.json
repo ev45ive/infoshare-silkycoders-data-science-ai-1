@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "nordvik-asystent": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["${workspaceFolder}/analizy/bc09-asystent-analityczny/usluga/service/mcp_server/server.py"],
+      "env": {
+        "BC09_API_URL": "http://127.0.0.1:8000",
+        "BC09_API_TOKEN": "${input:bc09-token}"
+      }
+    }
+  },
+  "inputs": [
+    { "type": "promptString", "id": "bc09-token", "description": "Token dostępu do usługi BC-09 (odpowiedź POST /auth/token)", "password": true }
+  ]
+}
