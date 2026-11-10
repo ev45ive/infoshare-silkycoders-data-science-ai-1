@@ -143,7 +143,7 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 2. Widok w `reporting` dla wyników prognoz: dodać jako `V027`?
 3. Progi alarmu monitoringu (WAPE i bias): notebook i ticket ich nie podają. Obecnie w `airflow/config/bc01.yaml` są wartości TESTOWE: WAPE 0,30, bias 0,10. Użytkownik je zmieni później.
 4. Q-04 zamknięte: dane zaczynają się w 2025, reguła niedziel handlowych dla wcześniejszych lat nie jest potrzebna.
-5. Pakiet `holidays` nie jest w obrazie Airflow (`apache/airflow:3.4.0`). Wybór: dodać `_PIP_ADDITIONAL_REQUIREMENTS` albo zbudować własny obraz. Decyzja użytkownika.
+5. Zamknięte: `holidays==0.108` i `python-dateutil` dodane w `compose.yaml` przez `_PIP_ADDITIONAL_REQUIREMENTS` (decyzja użytkownika). Instalacja przy starcie kontenera; po zmianie wersji trzeba przebudować pin.
 
 Właściciel pytań Q-01…Q-03: użytkownik. Założenia tymczasowe: Q-01 tylko suma 4 tygodni; Q-02 brak migracji V027; Q-03 progi testowe z `bc01.yaml`.
 

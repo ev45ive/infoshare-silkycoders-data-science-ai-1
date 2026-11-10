@@ -20,6 +20,7 @@ services:
       BC01_CONFIG: /opt/airflow/config/bc01.yaml
       BC01_DATA_DIR: /opt/airflow/data/bc01
       PYTHONPATH: /opt/airflow/src
+      _PIP_ADDITIONAL_REQUIREMENTS: "holidays==0.108 python-dateutil"
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
