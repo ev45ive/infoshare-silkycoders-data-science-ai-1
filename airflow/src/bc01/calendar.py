@@ -40,3 +40,29 @@ def store_calendar(start: str, end: str) -> pd.DataFrame:
 def store_open_days(cal: pd.DataFrame) -> pd.Series:
     """Liczba dni otwarcia sklepu stacjonarnego w tygodniu ISO (indeks: poniedziałek)."""
     return cal.groupby("week_start").store_open.sum().astype(int)
+
+
+def special_days(year: int) -> dict[str, pd.Timestamp]:
+    nov1 = pd.Timestamp(year, 11, 1)
+    thursdays = [nov1 + pd.Timedelta(days=i) for i in range(30) if (nov1 + pd.Timedelta(days=i)).day_of_week == 3]
+    e = pd.Timestamp(easter(year))
+    return {"easter": e, "corpus": e + pd.Timedelta(days=60),
+            "black_friday": thursdays[3] + pd.Timedelta(days=1), "xmas_eve": pd.Timestamp(year, 12, 24)}
+
+
+def week_calendar(start: str = "2024-12-30", end: str = "2026-12-27") -> pd.DataFrame:
+    """Cechy kalendarza tygodniowego (indeks: poniedziałek), znane z góry."""
+    cal = store_calendar(start, end)
+    cal["holiday_monsat"] = cal.is_holiday & ~cal.is_sunday
+    g = cal.groupby("week_start")
+    out = pd.DataFrame({"store_open_days": g.store_open.sum().astype(int),
+                        "holidays_monsat": g.holiday_monsat.sum().astype(int),
+                        "trading_sunday": g.trading_sunday.max().astype(int)})
+    years = (2024, 2025, 2026)
+    sd = {y: special_days(y) for y in years}
+    for name in ("easter", "corpus", "black_friday", "xmas_eve"):
+        weeks = {d - pd.Timedelta(days=d.day_of_week) for v in sd.values() for k, d in v.items() if k == name}
+        out[f"wk_{name}"] = out.index.isin(list(weeks)).astype(int)
+    easter_weeks = [v["easter"] - pd.Timedelta(days=v["easter"].day_of_week) for v in sd.values()]
+    out["wk_before_easter"] = out.index.isin([w - pd.Timedelta(weeks=1) for w in easter_weeks]).astype(int)
+    return out

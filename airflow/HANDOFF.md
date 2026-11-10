@@ -94,7 +94,9 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 | `airflow/src/bc01/stockouts.py`: flagi podejrzenia braku towaru (port komórki 50) | ✅ | Test syntetyczny w `test_bc01_data_layer.py`. Brak jeszcze czyszczenia `YI`. |
 | `load_catalog` w `data.py` (modele, lokalizacje, kolekcja BASIC z `merch_plan`) | ✅ | Używane przez test zgodności z CSV. |
 | Zgodność B1 i flag z `prognoza-W39-W42-top20.csv` (origin 2026-09-21) | ✅ | 120 wierszy, B1 w tolerancji 0,05 (CSV zaokrąglony do 1 miejsca), flagi identyczne. Test pomijany bez danych. |
-| Transformacje (sekcja 5): czyszczenie `YI`, reguły zer | ⏳ | `YI[F] = E[F]` jeszcze nie przeniesione. |
+| `airflow/src/bc01/features.py`: czyszczenie `YI` (`clean_sales`), `aggregates` (MT, CT), `feature_rows` (port komórek 48–52) | ✅ | Testy w `test_bc01_features.py`: tylko oflagowane tygodnie zmieniane w `YI`, brak wycieku z tygodni ≥ origin do cech. Zgodność M1/M2 z cache jeszcze do sprawdzenia. |
+| Kalendarz tygodniowy: `special_days`, `week_calendar` w `calendar.py` | ✅ | Cechy `wk_*`, dni otwarcia, niedziele handlowe, `holidays_monsat`. |
+| Reguły zer (sekcja 5) | ⏳ | Do przeniesienia razem z M1. |
 | Metody M1, M2 (LightGBM), analogi, B2 (sekcja 6) | ⏳ | M2 jest wynikiem do zapisu. Sekcja 4 zostaje poza kodem produkcyjnym. |
 | Przedziały i wyniki, flagi (sekcja 7) | ⏳ | |
 | Testy kontraktu „as of” i B1 | ✅ | `airflow/tests/test_bc01_contract.py`, 4 testy przechodzą (pytest w venv poza repo). |
@@ -126,7 +128,7 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
   Uruchamiać z `databases/RetailDW-postgres/`. Ponowne uruchomienie zmienia hasło w bazie, więc nowe hasło trzeba zapisać w `airflow/.env`.
 
 ## Jak weryfikować
-- `docker compose ps --format '{{.Health}}'` (w `airflow/`) — oczekiwany wynik: `healthy`
+- `docker compose ps --format '{{.Health}}'` (w `airflow/`) — oczekiwany wynik: `healthy`4
 - `docker compose exec -T airflow airflow dags list-import-errors` — oczekiwany wynik: `No data found`
 - `PYTHONPATH=src /tmp/bc01-test-venv/bin/python -m pytest -q tests` (w `airflow/`) — oczekiwany wynik: 10 passed. Venv tymczasowy: pandas, pyarrow, pytest, numpy, python-dateutil, holidays; w razie braku odtworzyć.
 
@@ -135,6 +137,7 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 - `databases/RetailDW-postgres/db/airflow-setup.sql`
 - `airflow/.env` (lokalny, nie w repo, zawiera hasło)
 - `airflow/HANDOFF.md` (ten plik)
+- `airflow/src/bc01/features.py`, `airflow/tests/test_bc01_features.py`
 - `airflow/src/bc01/calendar.py`, `panel.py`, `stockouts.py`, `load_catalog` w `data.py`
 - `airflow/tests/test_bc01_data_layer.py`
 
@@ -146,7 +149,8 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 5. Zamknięte: `holidays==0.108` i `python-dateutil` dodane w `compose.yaml` przez `_PIP_ADDITIONAL_REQUIREMENTS` (decyzja użytkownika). Instalacja przy starcie kontenera; po zmianie wersji trzeba przebudować pin.
 
 Właściciel pytań Q-01…Q-03: użytkownik. Założenia tymczasowe: Q-01 tylko suma 4 tygodni; Q-02 brak migracji V027; Q-03 progi testowe z `bc01.yaml`.
-
+ (etap cech): `features.py` (`clean_sales`, `aggregates`, `feature_rows`), kalendarz tygodniowy (`week_calendar`), `test_bc01_features.py`; sprawdzono: 14 testów przechodzi (w tym brak wycieku z tygodni ≥ origin); otwarte: zgodność M1/M2 z cache, M3, przedziały, DAG-i.
+- 2026-11-10 — zrobiono
 ## Dziennik postępu
 - 2026-11-10 — zrobiono (etap danych, faza 3): `load_catalog`, `calendar.py`, `panel.py`, `stockouts.py`, testy `test_bc01_data_layer.py`; sprawdzono: 10 testów przechodzi, B1 i flagi zgodne z CSV dla origin 2026-09-21; otwarte: YI, features, M1, M2, M3, przedziały, DAG-i; Q-04, zależność `holidays`.
 - 2026-11-10 — zrobiono: migracja V026, rola `airflow`, `.env.example`, Compose, `config/bc01.yaml`, `src/bc01/data.py` (as-of), `src/bc01/baseline.py` (B1), testy kontraktu, handoff zgodny z szablonem; sprawdzono: 4 testy przechodzą, `airflow db check` OK, kontener `healthy`, brak błędów importu DAG; commit `83e32da`; otwarte: M1/M2, DAG-i, Q-01…Q-03
