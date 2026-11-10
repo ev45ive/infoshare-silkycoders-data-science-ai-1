@@ -39,9 +39,9 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 ### Faza 2: Konfiguracja Airflow
 | Zadanie | Status | Uwagi |
 | --- | --- | --- |
-| `airflow/compose.yaml`: Airflow standalone, metadane w PostgreSQL | ⏳ | Limit 2 GB RAM i 1,5 CPU. DAG-i read-only. Dane Parquet zamontowane read-only. Sieć wspólna z RetailDW lub `host.docker.internal:5433`. |
-| `airflow/config/bc01.yaml` (próg WAPE, horyzont W39–W42, top 20, założenie o promocjach) | ⏳ | |
-| Start Airflow i sprawdzenie połączenia z bazą `airflow` | ⏳ | |
+| `airflow/compose.yaml`: Airflow standalone 3.4.0, metadane w PostgreSQL | ✅ | Limit 2 GB RAM i 1,5 CPU. DAG-i i kod read-only. Dane Parquet read-only. Sieć `retaildw_default`, host `postgres`. Wymaga działającego stacku RetailDW. |
+| `airflow/config/bc01.yaml` (horyzont, top 20, założenie o promocjach, ziarno) | ✅ | Progi alarmu WAPE i bias są `null`, do ustalenia (patrz pytanie 3). |
+| Start Airflow i sprawdzenie połączenia z bazą `airflow` | ✅ | `airflow db check` OK, kontener `healthy`, `dags list-import-errors` bez błędów. Start: `docker compose up -d` w `airflow/`. |
 
 ### Faza 3: Kod wspólny
 | Zadanie | Status | Uwagi |
@@ -87,3 +87,4 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 ## Otwarte pytania
 1. Przedział 80% jest na sumie 4 tygodni. Czy DAG ma też publikować przedziały tygodniowe?
 2. Widok w `reporting` dla wyników prognoz: dodać jako `V027`?
+3. Progi alarmu monitoringu (WAPE i bias): notebook i ticket ich nie podają. Do ustalenia ze zleceniodawcą; w `airflow/config/bc01.yaml` są `null`.
