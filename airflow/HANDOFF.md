@@ -1,8 +1,48 @@
 # Handoff: BC-01 prognoza tygodniowa w Airflow
 
+Ostatnia aktualizacja: 2026-11-10. Ścieżki względem katalogu głównego repozytorium.
+
+## Następny krok
+Uzupełnić Fazę 3 o transformacje i metody M1 oraz M2 (sekcje 5 i 6 notebooka) w `airflow/src/bc01/`, potem porównać B1 z `analizy/bc01-prognoza-popytu/prognoza-W39-W42-top20.csv`. Sprawdzenie: `cd airflow && PYTHONPATH=src <python-z-pytest> -m pytest -q tests`.
+
+## Kryteria akceptacji
+- Cel: cotygodniowa prognoza BC-01 zapisywana w `forecast.*`, z monitoringiem WAPE i bias oraz alarmem.
+- Kryteria akceptacji:
+  - [ ] Dane wczytane tylko sprzed originu (test kontraktu przechodzi)
+  - [ ] B1 zgodny z CSV referencyjnym w fazie 5
+  - [ ] Dwa uruchomienia tego samego tygodnia dają identyczne wyniki
+  - [ ] `airflow dags list-import-errors` bez błędów
+
+## Źródła
+| Źródło | Ścieżka | Do czego służy |
+| --- | --- | --- |
+| Ticket | `zgloszenia/Analizy/BC-01-prognoza-popytu--airflow.md` | Specyfikacja (poza zakresem agenta bez przekazania pliku) |
+| Notebook | `analizy/bc01-prognoza-popytu/bc01-prognoza-popytu.ipynb` | Źródło logiki |
+| Wynik referencyjny | `analizy/bc01-prognoza-popytu/prognoza-W39-W42-top20.csv` | Punkt odniesienia |
+| SQL agregacji | `analizy/bc01-prognoza-popytu/sql/weekly_sales_style_store.sql` | Definicja tygodniowej sprzedaży |
+| Konfiguracja | `airflow/config/bc01.yaml` | Parametry (horyzont, top 20, progi testowe) |
+| Kontrakt | `airflow/tests/test_bc01_contract.py` | Testy as-of i B1 |
+
+## Ograniczenia
+- Hasła i klucze nie trafiają do plików, argv ani czatu. Przechowywane tylko w `airflow/.env` (w `.gitignore`).
+- Zmiana hasła roli `airflow` (`ALTER ROLE`) wymaga potwierdzenia.
+- Zmiany schematu tylko przez nową migrację, po potwierdzeniu użytkownika. Nie edytować zastosowanych migracji.
+- Nie czytać `.specstory/`, `notatki/`, `docs/ai-sessions/`. `zgloszenia/` tylko po przekazaniu pliku przez użytkownika.
+- Sekcja 4 notebooka (eksploracja) nie trafia do kodu produkcyjnego.
+- Nie commitować `airflow/.env`.
+
+## Rejestr decyzji
+| ID | Data | Decyzja | Uzasadnienie | Zatwierdził | Status |
+| --- | --- | --- | --- | --- | --- |
+| D-01 | 2026-11-10 | Metadane Airflow w PostgreSQL (baza `airflow`, rola `airflow`) | Decyzja użytkownika zamiast SQLite | użytkownik | przyjęta |
+| D-02 | 2026-11-10 | Dane wejściowe z Parquet, nie z RetailDW | `merch_plan` nie istnieje w RetailDW | do potwierdzenia | przyjęta |
+| D-03 | 2026-11-10 | Przedział 80% liczony na sumie 4 tygodni | Tak jest w `analizy/bc01-prognoza-popytu/prognoza-W39-W42-top20.csv` | do potwierdzenia | przyjęta |
+| D-04 | 2026-11-10 | Progi alarmu WAPE 0,30 i bias 0,10 | Wartości testowe | użytkownik | do zmiany |
+
+## Kontekst
+
 Dokument do przejęcia pracy bez kontekstu poprzedniej rozmowy. Ścieżki są względem katalogu głównego repozytorium `infoshare-silkycoders-data-science-ai-1/`.
 
-## Cel
 Cotygodniowa prognoza popytu z analizy BC-01 uruchamiana przez Apache Airflow: prognoza co poniedziałek, zapis historii, monitoring dokładności, alarm.
 
 Specyfikacja (ticket): `zgloszenia/Analizy/BC-01-prognoza-popytu--airflow.md`.
@@ -16,7 +56,7 @@ Punkt odniesienia wyników: `analizy/bc01-prognoza-popytu/prognoza-W39-W42-top20
 - Hasła nigdy nie wpisywać do plików ani zapytań. Hasło roli `airflow` jest w `airflow/.env` (w `.gitignore`).
 - Zasady pracy z bazą: `.github/instructions/database.instructions.md`. Zmiany schematu tylko przez nową migrację, po potwierdzeniu użytkownika.
 
-## Stan prac
+## Plan i status
 
 Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do wykonania).
 
@@ -80,6 +120,11 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
   `PW="$(openssl rand -hex 24)"` ... `{ printf "\\set airflow_password '%s'\n" "$PW"; cat db/airflow-setup.sql; } | docker compose exec -T postgres psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q`
   Uruchamiać z `databases/RetailDW-postgres/`. Ponowne uruchomienie zmienia hasło w bazie, więc nowe hasło trzeba zapisać w `airflow/.env`.
 
+## Jak weryfikować
+- `docker compose ps --format '{{.Health}}'` (w `airflow/`) — oczekiwany wynik: `healthy`
+- `docker compose exec -T airflow airflow dags list-import-errors` — oczekiwany wynik: `No data found`
+- `PYTHONPATH=src <python-z-pytest> -m pytest -q tests` (w `airflow/`) — oczekiwany wynik: 4 passed
+
 ## Pliki
 - `databases/RetailDW-postgres/db/migrations/V026__create_forecast_schema.sql`
 - `databases/RetailDW-postgres/db/airflow-setup.sql`
@@ -90,3 +135,8 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 1. Przedział 80% jest na sumie 4 tygodni. Czy DAG ma też publikować przedziały tygodniowe?
 2. Widok w `reporting` dla wyników prognoz: dodać jako `V027`?
 3. Progi alarmu monitoringu (WAPE i bias): notebook i ticket ich nie podają. Obecnie w `airflow/config/bc01.yaml` są wartości TESTOWE: WAPE 0,30, bias 0,10. Użytkownik je zmieni później.
+
+Właściciel pytań Q-01…Q-03: użytkownik. Założenia tymczasowe: Q-01 tylko suma 4 tygodni; Q-02 brak migracji V027; Q-03 progi testowe z `bc01.yaml`.
+
+## Dziennik postępu
+- 2026-11-10 — zrobiono: migracja V026, rola `airflow`, `.env.example`, Compose, `config/bc01.yaml`, `src/bc01/data.py` (as-of), `src/bc01/baseline.py` (B1), testy kontraktu, handoff zgodny z szablonem; sprawdzono: 4 testy przechodzą, `airflow db check` OK, kontener `healthy`, brak błędów importu DAG; commit `83e32da`; otwarte: M1/M2, DAG-i, Q-01…Q-03
