@@ -2,6 +2,8 @@
 name: analiza
 description: 'Prowadzi analizę danych krok po kroku dla Nordvik: wejście (problem biznesowy, źródła, lokalizacja notebooka), walidacja danych, hipotezy i eksploracja, analiza, weryfikacja, reprodukowalność, podsumowanie. Każdy krok ładowany na żądanie z osobnego zasobu. Use when: analiza, nowa analiza, zacznij analizę, walidacja danych, eksploracja danych, hipotezy, weryfikacja wyniku, reprodukowalność, podsumowanie analizy, notebook analityczny.'
 argument-hint: 'Nazwa analizy lub numer kroku, np. krok 2'
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Analiza
