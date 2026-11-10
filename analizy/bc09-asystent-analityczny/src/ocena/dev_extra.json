@@ -1,0 +1,210 @@
+{
+ "_uwaga": "Pytania własne agenta (tylko DEV). Luki wyznaczone względem słownika metryk i dokumentów (zwroty, przychód na m2, karty, inwentaryzacja, kolizja dokumentu D12 ze słownikiem, nieistniejący sklep, okres przed danymi). Wzorce policzone z faktów.",
+ "questions": [
+  {
+   "id": "X01",
+   "category": "liczbowe",
+   "split": "dev",
+   "question": "Ile wyniosła sprzedaż w sklepie Nordvik Poznań (S-POZ-01) w dniu 2026-09-10?",
+   "reference_answer": "Sprzedaż netto S-POZ-01 w dniu 2026-09-10: 24 222,42 PLN (suma FactSales.NetAmount; słowo „sprzedaż” = netto przed zwrotami)."
+  },
+  {
+   "id": "X02",
+   "category": "liczbowe",
+   "split": "dev",
+   "question": "Ile transakcji zrealizowano w całej firmie (wszystkie kanały) w tygodniu ISO 2026-W30?",
+   "reference_answer": "W tygodniu 2026-W30 zrealizowano 2484 transakcji (COUNT DISTINCT TransactionNo po całej firmie)."
+  },
+  {
+   "id": "X03",
+   "category": "liczbowe",
+   "split": "dev",
+   "question": "Jaki był wskaźnik zwrotów (w %) w sklepie Nordvik Gdańsk (S-GDA-01) w czerwcu 2026?",
+   "reference_answer": "Wskaźnik zwrotów S-GDA-01 w 2026-06: 4.2% (129 szt. zwróconych przyjętych w miesiącu / 3068 szt. sprzedanych)."
+  },
+  {
+   "id": "X04",
+   "category": "liczbowe",
+   "split": "dev",
+   "question": "Jaki był przychód netto na m² sklepu Nordvik Arkadia (S-WAW-01) w maju 2026?",
+   "reference_answer": "Przychód netto na m² S-WAW-01 w 2026-05: 1 182,29 PLN/m² (sprzedaż netto / 420 m² bieżącej powierzchni)."
+  },
+  {
+   "id": "X05",
+   "category": "procedurowe",
+   "split": "dev",
+   "question": "Czy klient może wypłacić w gotówce niewykorzystane saldo karty podarunkowej i jak długo karta jest ważna?",
+   "reference_answer": "Nie: nie wypłacamy gotówki za kartę ani za saldo; karta jest ważna 12 miesięcy od aktywacji (Karty podarunkowe, v1.0)."
+  },
+  {
+   "id": "X06",
+   "category": "procedurowe",
+   "split": "dev",
+   "question": "Jak często przeprowadza się inwentaryzację w sklepie i w jakim terminie kierownik przekazuje opis różnic?",
+   "reference_answer": "Inwentaryzacja raz na kwartał w każdym sklepie stacjonarnym; opis różnic powyżej 0,5% wartości stanu kierownik przekazuje Logistyce w ciągu 5 dni roboczych (Inwentaryzacja, v1.1)."
+  },
+  {
+   "id": "X07",
+   "category": "procedurowe",
+   "split": "dev",
+   "question": "Z której kolumny widoku mam brać sprzedaż dzienną sklepu, żeby dostać sprzedaż netto?",
+   "reference_answer": "Dokument „Raportowanie sprzedaży dla kierowników sklepów” v1.0 wskazuje reporting.vw_SalesDaily.Revenue, ale kolumna ta zawiera sprzedaż BRUTTO (z VAT). Sprzedaż netto wg słownika metryk to FactSales.NetAmount (suma po dniu i sklepie). Dokument jest w tym punkcie niezgodny ze słownikiem."
+  },
+  {
+   "id": "X08",
+   "category": "wieloetapowe",
+   "split": "dev",
+   "question": "Który sklep stacjonarny miał najwyższy wskaźnik zwrotów w sierpniu 2026 i ile on wynosił?",
+   "reference_answer": "Najwyższy wskaźnik zwrotów w 2026-08 miał S-WAW-02: 4.8%. Pozostałe: S-GDA-01 3.8%; S-KRK-01 3.9%; S-POZ-01 4.0%; S-WAW-01 3.9%."
+  },
+  {
+   "id": "X09",
+   "category": "poza_zakresem",
+   "split": "dev",
+   "question": "Jaka była sprzedaż netto sklepu Nordvik Lublin w sierpniu 2026?",
+   "reference_answer": "Brak danych: Nordvik nie ma sklepu w Lublinie (są: Warszawa Arkadia, Warszawa Mokotów, Kraków Rynek, Poznań, Gdańsk i sklep internetowy)."
+  },
+  {
+   "id": "X10",
+   "category": "poza_zakresem",
+   "split": "dev",
+   "question": "Ile wyniosła sprzedaż netto całej firmy w 2024 roku?",
+   "reference_answer": "Brak danych: sprzedaż w hurtowni zaczyna się 2025-01-01 (od 2025-01-01), więc nie ma danych za 2024 rok."
+  }
+ ],
+ "checks": {
+  "X01": {
+   "numbers": [
+    {
+     "v": 24222.42,
+     "tol": 1.0
+    }
+   ],
+   "tools": {
+    "required": [
+     "run_sql"
+    ]
+   }
+  },
+  "X02": {
+   "numbers": [
+    {
+     "v": 2484,
+     "tol": 0
+    }
+   ],
+   "tools": {
+    "required": [
+     "run_sql"
+    ]
+   }
+  },
+  "X03": {
+   "numbers": [
+    {
+     "v": 4.2,
+     "tol": 0.1
+    }
+   ],
+   "tools": {
+    "required": [
+     "run_sql"
+    ]
+   }
+  },
+  "X04": {
+   "numbers": [
+    {
+     "v": 1182.29,
+     "tol": 0.5
+    }
+   ],
+   "tools": {
+    "required": [
+     "run_sql"
+    ]
+   }
+  },
+  "X05": {
+   "facts": [
+    "nie (może |można |wolno )?wypłac|nie można|brak zwrotu gotówk",
+    "12 miesi"
+   ],
+   "cites": [
+    {
+     "title": "Karty podarunkowe",
+     "version": "1.0"
+    }
+   ],
+   "tools": {
+    "required": [
+     "search_docs"
+    ],
+    "forbidden": [
+     "run_sql"
+    ]
+   }
+  },
+  "X06": {
+   "facts": [
+    "kwarta",
+    "5 dni robocz"
+   ],
+   "cites": [
+    {
+     "title": "Inwentaryzacja",
+     "version": "1.1"
+    }
+   ],
+   "tools": {
+    "required": [
+     "search_docs"
+    ],
+    "forbidden": [
+     "run_sql"
+    ]
+   }
+  },
+  "X07": {
+   "facts": [
+    "brutto",
+    "NetAmount"
+   ],
+   "conflict": "niezgodn|sprzeczn|różni|nie odpowiada|zamiast|nie jest netto|brutto",
+   "tools": {
+    "required": [
+     "search_docs"
+    ]
+   }
+  },
+  "X08": {
+   "facts": [
+    "S-WAW-02",
+    "4[.,]8"
+   ],
+   "tools": {
+    "required": [
+     "run_sql"
+    ]
+   }
+  },
+  "X09": {
+   "refusal": true,
+   "facts": [
+    "Lublin|nie ma|nie istnieje|brak sklepu"
+   ],
+   "forbidden": [
+    "\\d{3}[  ]\\d{3}[,.]\\d{2}\\s*PLN"
+   ]
+  },
+  "X10": {
+   "refusal": true,
+   "facts": [
+    "2025"
+   ],
+   "forbidden": [
+    "\\d{1,3}[  ]\\d{3}[  ]\\d{3}[,.]\\d{2}\\s*PLN"
+   ]
+  }
+ }
+}

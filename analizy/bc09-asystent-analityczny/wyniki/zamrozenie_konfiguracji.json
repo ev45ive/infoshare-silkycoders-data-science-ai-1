@@ -1,0 +1,61 @@
+{
+ "zapisano": "2026-11-10T13:06:12",
+ "opis": "Konfiguracja zamrożona PRZED uruchomieniem pytań testowych. Zmiana któregokolwiek pliku po tej dacie unieważnia wyniki testu.",
+ "model": "gpt-4.1-mini",
+ "prompt_wersja": "p3",
+ "limity": {
+  "sql_wiersze": 200,
+  "sql_czas_s": 15,
+  "rundy": 8,
+  "tokeny_na_pytanie": 60000,
+  "tokeny_lacznie": 3000000
+ },
+ "tokeny_zuzyte_do_zamrozenia": 1744720,
+ "sha256_16": {
+  "src/asystent/__init__.py": "e3b0c44298fc1c14",
+  "src/asystent/agent.py": "a08cc9ebf7b52281",
+  "src/asystent/baseline.py": "c87d7c7313e80b0d",
+  "src/asystent/config.py": "7b6124e92d0659cb",
+  "src/asystent/db.py": "59bec2f856b67b2d",
+  "src/asystent/docs.py": "ac677b08d98afa80",
+  "src/asystent/forecast.py": "809948e4afbabe19",
+  "src/asystent/llm.py": "8866c3569d7ccdf8",
+  "src/asystent/prompts.py": "5b944ae72df8ff77",
+  "src/asystent/tasks.py": "8f60d687b5e5f495",
+  "src/asystent/tools.py": "ee8a823eb89d6514",
+  "src/ocena/__init__.py": "e3b0c44298fc1c14",
+  "src/ocena/bezpieczenstwo.py": "1440ca1df62f1fdc",
+  "src/ocena/oceniacz.py": "697bcec52fb311d6",
+  "src/ocena/runner.py": "89ff37ac864e4e3c",
+  "src/ocena/score.py": "2bd197e6f76a7cc7",
+  "src/ocena/checks_dev.json": "83c176400e945789",
+  "src/ocena/dev_extra.json": "f7f3b180cbf01cbd"
+ },
+ "dane_sha256_16": {
+  "slownik_metryk.md": "f4ba6ced1bc996da",
+  "gold_set.jsonl": "d02e2e82e5d89466",
+  "baza_duckdb": "bd33084119694739"
+ },
+ "ast_sha256_16": {
+  "src/asystent/__init__.py": "3543b4693a36a109",
+  "src/asystent/agent.py": "28e577d9783cea81",
+  "src/asystent/baseline.py": "ad678122105571fe",
+  "src/asystent/config.py": "d4530a6b42efb01c",
+  "src/asystent/db.py": "712c5e7f2568116b",
+  "src/asystent/docs.py": "e1fc036ac8e76db2",
+  "src/asystent/forecast.py": "f477c15f18b5ac39",
+  "src/asystent/llm.py": "73ef84d05bc12f82",
+  "src/asystent/prompts.py": "abe1b19112fd256a",
+  "src/asystent/tasks.py": "4eb82b02a0ef1a0f",
+  "src/asystent/tools.py": "eccd0cf91c2f69d7",
+  "src/ocena/__init__.py": "3543b4693a36a109",
+  "src/ocena/bezpieczenstwo.py": "1b0733fef10e5af0",
+  "src/ocena/oceniacz.py": "9243004f54307e72",
+  "src/ocena/runner.py": "a07d9f196c67f817",
+  "src/ocena/score.py": "627a1cea8d6b2ba0"
+ },
+ "uzupelnienie_ast": {
+  "zapisano": "2026-11-10T14:42:47",
+  "opis": "Odcisk AST (struktura kodu bez komentarzy) policzony z plików identycznych bajtowo z zamrożeniem. Po tej dacie do plików .py dodano wyłącznie komentarze '#'; zachowanie kodu potwierdza równość odcisku AST, a sumy bajtowe (sha256_16) są zapisem historycznym stanu z chwili zamrożenia."
+ }
+}
