@@ -3327,10 +3327,74 @@ zapisz wynik analizy do pliku jako experyment wersja 1
 
 _**Agent (copilot/claude-haiku-5.5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_createFile"><details>
-<summary>Tool use: **copilot_createFile**</summary>
+<tool-use data-tool-type="write" data-tool-name="create_file"><details>
+<summary>Tool use: **create_file**</summary>
 
 Created `eksperyment-v1.md`
+
+**Input:**
+
+- content:
+
+```
+# Eksperyment v1: linie `confirmed` z dostępnością netto ≥ MOQ
+
+Data: 2026-11-09. Status wyniku: możliwe do potwierdzenia (z założeniami poniżej).
+
+## Pytanie
+
+Ile linii ze statusem `confirmed` ma dostępność netto ≥ MOQ na migawce 2026-10-26? (P5, zaakceptowane w [rejestrze decyzji](../decisions/otwarte-decyzje.md))
+
+## Wejścia
+
+- `zgloszenia/P01-04/partner_shipments_v3.xlsx` (profil: `partner_shipments_v3`)
+- `zgloszenia/P01-04/partner_availability_v2.xlsx` (profil: `partner_availability_v2`)
+- `zgloszenia/P01-04/nordvik_assortment_map.csv` (mapowanie po `PartnerSKU`)
+
+## Zakres
+
+- Zmapowane linie: 120 SKU, 4 tygodnie, 6 destynacji.
+- Niezmapowane SKU (880) są poza wynikiem (P4).
+
+## Metoda
+
+1. Linie przesyłek ze statusem `confirmed` i zmapowanym `PartnerSKU`.
+2. Połączenie z migawką dostępności po `PartnerSKU` i `Destination`, wybór migawki z `AsOfDate` = 2026-10-26.
+3. Dostępność netto = `AvailableUnits` − `ReservedUnits`. MOQ na poziomie linii (P2).
+4. Dostępność netto nie jest obcinana do 0. Obcięcie nie zmienia wyniku (P6).
+
+## Wynik
+
+| Miara | Wartość |
+| --- | --- |
+| Zmapowane linie `confirmed` | 2 560 |
+| Linie z dostępnością netto ≥ MOQ (migawka 2026-10-26) | 1 938 |
+| Linie bez migawki dla pary SKU+Destination | 0 |
+
+## Założenia i ograniczenia
+
+- `confirmed` to etykieta partnera, nie gwarancja dostawy (P1).
+- Wynik nie jest zamówieniem ani potwierdzoną dostawą.
+- Migawka S0002007 nie ma MOQ, ale ma `AsOfDate` 2026-10-05, więc nie wpływa na wynik.
+- Definicje metryk nie zostały sprawdzone w `docs/slownik-metryk.md` w tym eksperymencie. Przed użyciem w raporcie trzeba to uzupełnić.
+- Obliczenie wykonano skryptem read-only poza workspace (`/tmp/analyze_partner.py`). Skrypt nie jest częścią repozytorium.
+
+## Otwarte
+
+- Definicja zamówienia dla poziomu zamówienia (P2).
+- Przepis w `imports/recipes/` po zatwierdzeniu.
+- Progi jakości w profilach.
+
+```
+
+- filePath: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/imports/experiments/eksperyment-v1.md`
+
+**Result:**
+
+```
+The following files were successfully edited:
+/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/imports/experiments/eksperyment-v1.md
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-haiku-5.5)**_
@@ -3397,3 +3461,11 @@ _**Agent (copilot/claude-haiku-5.5)**_
 Zapisałem wynik jako eksperyment v1 w `imports/experiments/eksperyment-v1.md`. Zawiera pytanie, wejścia, metodę, wynik (1 938 z 2 560 zmapowanych linii `confirmed`), założenia i otwarte punkty.
 
 Skrypt liczący jest w `tmp`, poza workspace, więc nie przetrwa restartu. Jeśli ma być powtarzalny, mogę przenieść go do `experiments`. Potrzebuję zgody.
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 1 todo
+</details></tool-use>

@@ -19,9 +19,9 @@
 | WeekStart | data | Excel serial lub datetime |
 | UnitsBooked | liczba | przepływ, sumuje się |
 | PromisedDate | data | Excel serial lub datetime |
-| Status | enum | `confirmed`, `at_risk`; znaczenie biznesowe nie zdefiniowane w profilu |
+| Status | enum | `confirmed`, `at_risk`; etykiety partnera bez własnej interpretacji. `at_risk` nie oznacza anulowania, `confirmed` nie jest gwarancją dostawy (decyzja P1) |
 | PartnerNote | tekst | |
 
 ## Progi jakości
 
-- Brak progów w profilu. Zapytać użytkownika przed dalszą pracą.
+- Bez progów. Zatrzymanie importu tylko przy błędach schematu (brak nagłówka lub kolumny).

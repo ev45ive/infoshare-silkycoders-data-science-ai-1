@@ -2,4 +2,7 @@
   "chat.useAgentsMdFile": true,
   "chat.editor.localAgent.enabled": true,
   "chat.editor.preferCopilotHarness": false,
+  "specstory.cloudSync.enabled": "never", 
+    "python.terminal.useEnvFile": true,
+
 }

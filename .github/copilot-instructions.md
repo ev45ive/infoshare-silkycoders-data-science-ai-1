@@ -60,6 +60,7 @@ korzystasz.
 Przy pracy z plikami danego typu stosuj zasady z plików:
 - pliki `.sql`: [.github/instructions/sql.instructions.md](.github/instructions/sql.instructions.md)
 - notebooki `.ipynb`: [.github/instructions/jupyter.instructions.md](.github/instructions/jupyter.instructions.md)
+- baza RetailDW (zapytania, schemat, migracje, pliki w `databases/`): [.github/instructions/database.instructions.md](.github/instructions/database.instructions.md)
 
 
 ---

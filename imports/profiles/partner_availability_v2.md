@@ -19,10 +19,14 @@
 | AsOfDate | data | Excel serial lub datetime; migawka, nie sumuje się po tygodniach |
 | AvailableUnits | liczba | stan migawki |
 | ReservedUnits | liczba | stan migawki |
-| MOQ | liczba | poziom (linia lub zamówienie) do potwierdzenia |
+| MOQ | liczba | poziom linii, na linię PartnerSKU + Destination (decyzja P2) |
 | AvailabilityNote | tekst | |
+
+## Zasady
+
+- Wynik na migawce najnowszej: `AsOfDate` = 2026-10-26 (decyzja P3).
+- Dostępność netto = `AvailableUnits` − `ReservedUnits`, bez klipowania do 0; wartości ujemne pokazywać osobno jako sygnał (decyzja P6).
 
 ## Progi jakości
 
-- Brak progów w profilu. Zapytać użytkownika przed dalszą pracą.
-- Poziom MOQ (linia czy zamówienie) do potwierdzenia.
+- Bez progów. Zatrzymanie importu tylko przy błędach schematu (brak nagłówka lub kolumny).
