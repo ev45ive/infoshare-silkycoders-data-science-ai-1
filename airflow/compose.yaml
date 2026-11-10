@@ -5,7 +5,8 @@ name: bc01-airflow
 
 services:
   airflow:
-    image: apache/airflow:3.4.0
+    build: .
+    image: bc01-airflow:3.4.0
     restart: "no"
     cpus: 1.5
     mem_limit: 2g
@@ -20,7 +21,7 @@ services:
       BC01_CONFIG: /opt/airflow/config/bc01.yaml
       BC01_DATA_DIR: /opt/airflow/data/bc01
       PYTHONPATH: /opt/airflow/src
-      _PIP_ADDITIONAL_REQUIREMENTS: "holidays==0.108 python-dateutil"
+      BC01_DB_PASSWORD: ${AIRFLOW_DB_PASSWORD:?Ustaw AIRFLOW_DB_PASSWORD w airflow/.env}
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
