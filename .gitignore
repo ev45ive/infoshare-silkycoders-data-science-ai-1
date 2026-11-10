@@ -1,4 +1,9 @@
 imports/.venv/
+
+.venv
+_build
+cache
+__pycache__
 airflow/.env
 airflow/logs/
 airflow/plugins/
