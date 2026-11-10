@@ -1,6 +1,6 @@
 # Eksperyment v1: linie `confirmed` z dostępnością netto ≥ MOQ
 
-Data: 2026-11-09. Status wyniku: możliwe do potwierdzenia (z założeniami poniżej).
+Data: 2026-11-09. Status eksperymentu: zaakceptowany przez użytkownika (2026-11-10). Status wyniku: możliwe do potwierdzenia (z założeniami poniżej).
 
 ## Pytanie
 
