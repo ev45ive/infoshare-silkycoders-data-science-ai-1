@@ -704,3 +704,531 @@ Tak, obaj mogą delegować do subagenta, ale obecnie żaden z nich nie ma do teg
 - `.github/agents/recenzent-notebookow.agent.md` ma narzędzia instalacji pakietów i konfiguracji środowiska Pythona. Są sprzeczne z zakazem uruchamiania kodu i zmiany środowiska. Warto je usunąć.
 
 Chcesz, żebym dodał alias `agent` z listą `agents: [Explore]` do obu plików i usunął narzędzia zapisu z obu? Nie zmieniam nic bez Twojej zgody.
+
+---
+
+_**User (2026-11-10 10:57:13Z)**_
+
+jakie sybagenty warto stworzyc
+
+---
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+Warto utworzyć trzy subagenty. Każdy powinien być wąski, tylko do odczytu i z krótkim wynikiem.
+
+| Subagent | Zadanie | Narzędzia | Zysk | Koszt |
+|---|---|---|---|---|
+| **Walidator metryk** | Porównuje SQL lub wynik z `docs/slownik-metryk.md` i zwraca listę rozbieżności | odczyt, wyszukiwanie, zapytania pgsql (bez zapisu) | Wysoki: spójne definicje w Analityku i Recenzencie | Średni: słownik ładowany przy każdym wywołaniu |
+| **Diagnostyka Airflow** | Czyta logi tasków i wyniki `pytest` w `airflow`, zwraca przyczynę błędu i miejsce w kodzie | odczyt, wyszukiwanie, terminal tylko do poleceń testowych | Wysoki: długie logi nie trafiają do głównego kontekstu | Średni-wysoki: terminal i ryzyko zbyt szerokich uprawnień |
+| **Rozpoznanie danych** | Schemat RetailDW, nagłówki CSV, README danych, bez czytania dużych plików | odczyt, wyszukiwanie, zapytania pgsql | Wysoki przy dużych plikach | Niski. Wbudowany Explore już to częściowo robi, więc własny subagent tylko przy stałych wymaganiach |
+
+Nie tworzyłbym subagenta per BC-01…BC-08 ani do importu partnera. Import jest już skillem `partner-import`, a BC to zadania biznesowe, nie stała rola.
+
+Żeby subagent był wywoływany, rodzic musi mieć alias `agent` w `tools` i wpis w `agents:`. Subagenty pomocnicze ustaw jako `user-invocable: false`, żeby nie pojawiały się w liście agentów.
+
+Chcesz, żebym utworzył te pliki w `agents`, zaczynając od walidatora metryk?
+
+---
+
+_**User (2026-11-10 10:58:14Z)**_
+
+dodaj 2 - walidator i rozponznie.
+
+wskasz naszym chatmodes zeby wiedzialy jak je uruchomic 
+
+---
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `analityk.agent.md`, lines 1 to 10
+
+**Input:**
+
+- endLine: `10`
+- filePath: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/analityk.agent.md`
+- startLine: `1`
+
+**Result:**
+
+```
+---
+description: "Use when planning a business analysis for Nordvik: define question, sources, metric definitions, steps, assumptions and checks before any code is written. Read-only planning."
+name: "Analityk"
+tools: [read, vscode.mermaid-markdown-features/renderMermaidDiagram, search, 'postgresql-mcp/*']
+user-invocable: true
+---
+Jesteś analitykiem danych pracującym dla sieci Nordvik. Twoim zadaniem jest zaplanować analizę, zanim powstanie kod lub zapytanie.
+
+## Ograniczenia
+- NIE edytuj plików i NIE uruchamiaj poleceń.
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `recenzent-notebookow.agent.md`, lines 1 to 10
+
+**Input:**
+
+- endLine: `10`
+- filePath: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/recenzent-notebookow.agent.md`
+- startLine: `1`
+
+**Result:**
+
+```
+---
+description: "Use when reviewing a Jupyter notebook (.ipynb) for Nordvik: section order, metadata cell, metric definitions, chart and test documentation, conclusions. Read-only review."
+name: "Recenzent notebooków"
+tools: [read, ms-python.python/getPythonEnvironmentInfo, ms-python.python/getPythonExecutableCommand, ms-python.python/installPythonPackage, ms-python.python/configurePythonEnvironment, ms-toolsai.jupyter/configureNotebook, ms-toolsai.jupyter/listNotebookPackages, ms-toolsai.jupyter/installNotebookPackages, search]
+user-invocable: true
+---
+Jesteś recenzentem notebooków analitycznych w projekcie Nordvik. Sprawdzasz zgodność z regułami i zgłaszasz problemy. Nie poprawiasz notebooka.
+
+## Ograniczenia
+- NIE edytuj plików i NIE uruchamiaj kodu.
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="write" data-tool-name="create_file"><details>
+<summary>Tool use: **create_file**</summary>
+
+Created `walidator-metryk.agent.md`
+
+**Input:**
+
+- content:
+
+```
+---
+description: "Use when checking whether SQL, a notebook metric or a result matches the Nordvik metric dictionary (docs/slownik-metryk.md). Returns discrepancies and sources. Read-only."
+name: "Walidator metryk"
+tools: [read, search]
+user-invocable: false
+---
+Jesteś walidatorem metryk w projekcie Nordvik. Porównujesz podaną metrykę, SQL lub fragment kodu z definicją w [docs/slownik-metryk.md](docs/slownik-metryk.md). Nie piszesz nowych zapytań i nie edytujesz plików.
+
+## Ograniczenia
+- NIE edytuj plików i NIE uruchamiaj poleceń.
+- NIE czytaj plików z `.specstory/`, `zgloszenia/`, `notatki/` ani `docs/ai-sessions/`.
+- NIE zgaduj definicji. Jeśli metryki nie ma w słowniku, zwróć to wprost.
+
+## Podejście
+1. Znajdź wpis metryki w słowniku.
+2. Porównaj nazwę, filtry, jednostkę, okres i źródło z przekazanym SQL lub kodem.
+3. Wypisz każdą rozbieżność z numerem linii lub nazwą kolumny.
+
+## Format odpowiedzi (maks. 15 linii)
+- Metryka i źródło (sekcja słownika)
+- Status: zgodna / rozbieżna / brak w słowniku
+- Rozbieżności (lista)
+
+```
+
+- filePath: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/walidator-metryk.agent.md`
+
+**Result:**
+
+```
+The following files were successfully edited:
+/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/walidator-metryk.agent.md
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="write" data-tool-name="create_file"><details>
+<summary>Tool use: **create_file**</summary>
+
+Created `rozpoznanie-danych.agent.md`
+
+**Input:**
+
+- content:
+
+```
+---
+description: "Use when a quick overview of Nordvik data sources is needed: RetailDW schema, CSV headers, dataset READMEs, without loading whole data files. Read-only."
+name: "Rozpoznanie danych"
+tools: [read, search]
+user-invocable: false
+---
+Jesteś agentem rozpoznania danych w projekcie Nordvik. Zwracasz krótki opis źródła: kolumny, typy, zakres dat i ograniczenia. Nie analizujesz danych i nie edytujesz plików.
+
+## Ograniczenia
+- NIE edytuj plików i NIE uruchamiaj poleceń.
+- NIE czytaj całych plików danych (`datasets/`, CSV, XLSX). Czytaj tylko nagłówek i kilka pierwszych wierszy.
+- NIE czytaj plików z `.specstory/`, `zgloszenia/`, `notatki/` ani `docs/ai-sessions/`.
+
+## Podejście
+1. Sprawdź README danych w `datasets/synthetic/` lub obok pliku.
+2. Dla CSV odczytaj nagłówek i kilka pierwszych wierszy.
+3. Dla schematu RetailDW sprawdź definicje w `databases/`.
+4. Zaznacz, czego nie da się ustalić z tych źródeł.
+
+## Format odpowiedzi (maks. 15 linii)
+- Źródło (ścieżka)
+- Kolumny i typy
+- Zakres dat i liczba wierszy, jeśli są w README
+- Ograniczenia i niepewności
+
+```
+
+- filePath: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/rozpoznanie-danych.agent.md`
+
+**Result:**
+
+```
+The following files were successfully edited:
+/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/rozpoznanie-danych.agent.md
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **walidator-metryk.agent.md**</summary>
+
+@@ lines 1-1 @@
+
+```
+---
+description: "Use when checking whether SQL, a notebook metric or a result matches the Nordvik metric dictionary (docs/slownik-metryk.md). Returns discrepancies and sources. Read-only."
+name: "Walidator metryk"
+tools: [read, search]
+user-invocable: false
+---
+Jesteś walidatorem metryk w projekcie Nordvik. Porównujesz podaną metrykę, SQL lub fragment kodu z definicją w [docs/slownik-metryk.md](docs/slownik-metryk.md). Nie piszesz nowych zapytań i nie edytujesz plików.
+
+## Ograniczenia
+- NIE edytuj plików i NIE uruchamiaj poleceń.
+- NIE czytaj plików z `.specstory/`, `zgloszenia/`, `notatki/` ani `docs/ai-sessions/`.
+- NIE zgaduj definicji. Jeśli metryki nie ma w słowniku, zwróć to wprost.
+
+## Podejście
+1. Znajdź wpis metryki w słowniku.
+2. Porównaj nazwę, filtry, jednostkę, okres i źródło z przekazanym SQL lub kodem.
+3. Wypisz każdą rozbieżność z numerem linii lub nazwą kolumny.
+
+## Format odpowiedzi (maks. 15 linii)
+- Metryka i źródło (sekcja słownika)
+- Status: zgodna / rozbieżna / brak w słowniku
+- Rozbieżności (lista)
+
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **rozpoznanie-danych.agent.md**</summary>
+
+@@ lines 1-1 @@
+
+```
+---
+description: "Use when a quick overview of Nordvik data sources is needed: RetailDW schema, CSV headers, dataset READMEs, without loading whole data files. Read-only."
+name: "Rozpoznanie danych"
+tools: [read, search]
+user-invocable: false
+---
+Jesteś agentem rozpoznania danych w projekcie Nordvik. Zwracasz krótki opis źródła: kolumny, typy, zakres dat i ograniczenia. Nie analizujesz danych i nie edytujesz plików.
+
+## Ograniczenia
+- NIE edytuj plików i NIE uruchamiaj poleceń.
+- NIE czytaj całych plików danych (`datasets/`, CSV, XLSX). Czytaj tylko nagłówek i kilka pierwszych wierszy.
+- NIE czytaj plików z `.specstory/`, `zgloszenia/`, `notatki/` ani `docs/ai-sessions/`.
+
+## Podejście
+1. Sprawdź README danych w `datasets/synthetic/` lub obok pliku.
+2. Dla CSV odczytaj nagłówek i kilka pierwszych wierszy.
+3. Dla schematu RetailDW sprawdź definicje w `databases/`.
+4. Zaznacz, czego nie da się ustalić z tych źródeł.
+
+## Format odpowiedzi (maks. 15 linii)
+- Źródło (ścieżka)
+- Kolumny i typy
+- Zakres dat i liczba wierszy, jeśli są w README
+- Ograniczenia i niepewności
+
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+Now I'll wire both parent agents to the new subagents. 
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="multi_replace_string_in_file"><details>
+<summary>Tool use: **multi_replace_string_in_file**</summary>
+
+Replacing 7 lines with 17 lines in `analityk.agent.md`, `recenzent-notebookow.agent.md`
+
+**Input:**
+
+- explanation: `Allow Analityk to call the two subagents and document when to use them`
+- replacements:
+
+```
+[
+  {
+    "filePath": "/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/analityk.agent.md",
+    "newString": "tools: [read, vscode.mermaid-markdown-features/renderMermaidDiagram, search, 'postgresql-mcp/*', agent]\nagents: [\"Walidator metryk\", \"Rozpoznanie danych\"]\nuser-invocable: true\n---",
+    "oldString": "tools: [read, vscode.mermaid-markdown-features/renderMermaidDiagram, search, 'postgresql-mcp/*']\nuser-invocable: true\n---"
+  },
+  {
+    "filePath": "/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/analityk.agent.md",
+    "newString": "- Pytania otwarte\n\n## Subagenty\n- Rozpoznanie danych: gdy trzeba znać schemat, nagłówki CSV lub README źródła, zanim zaplanujesz kroki.\n- Walidator metryk: gdy masz przygotowany SQL lub kod do sprawdzenia względem słownika.",
+    "oldString": "- Pytania otwarte"
+  },
+  {
+    "filePath": "/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/recenzent-notebookow.agent.md",
+    "newString": "agent\nagents: [\"Walidator metryk\"]\nuser-invocable: true\n---",
+    "oldString": "user-invocable: true\n---"
+  },
+  {
+    "filePath": "/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/recenzent-notebookow.agent.md",
+    "newString": "- Sugestie poprawek (bez wprowadzania ich do pliku)\n\n## Subagenty\n- Walidator metryk: gdy trzeba porównać metrykę z notebooka ze słownikiem. Przekaż mu nazwę metryki i fragment kodu.",
+    "oldString": "- Sugestie poprawek (bez wprowadzania ich do pliku)"
+  }
+]
+```
+
+
+**Result:**
+
+```
+The following files were successfully edited:
+/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/analityk.agent.md
+/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/recenzent-notebookow.agent.md
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **analityk.agent.md**</summary>
+
+@@ lines 28-28 @@
+
+```
+
+
+## Subagenty
+- Rozpoznanie danych: gdy trzeba znać schemat, nagłówki CSV lub README źródła, zanim zaplanujesz kroki.
+- Walidator metryk: gdy masz przygotowany SQL lub kod do sprawdzenia względem słownika.
+```
+
+@@ lines 4-4 @@
+
+```
+, agent]
+agents: ["Walidator metryk", "Rozpoznanie danych"
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+
+```
+
+```
+
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **recenzent-notebookow.agent.md**</summary>
+
+@@ lines 26-26 @@
+
+```
+
+
+## Subagenty
+- Walidator metryk: gdy trzeba porównać metrykę z notebooka ze słownikiem. Przekaż mu nazwę metryki i fragment kodu.
+```
+
+@@ lines 5-5 @@
+
+```
+agent
+agents: ["Walidator metryk"]
+
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `recenzent-notebookow.agent.md`, lines 1 to 9
+
+**Input:**
+
+- endLine: `9`
+- filePath: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/recenzent-notebookow.agent.md`
+- startLine: `1`
+
+**Result:**
+
+```
+---
+description: "Use when reviewing a Jupyter notebook (.ipynb) for Nordvik: section order, metadata cell, metric definitions, chart and test documentation, conclusions. Read-only review."
+name: "Recenzent notebooków"
+tools: [read, ms-python.python/getPythonEnvironmentInfo, ms-python.python/getPythonExecutableCommand, ms-python.python/installPythonPackage, ms-python.python/configurePythonEnvironment, ms-toolsai.jupyter/configureNotebook, ms-toolsai.jupyter/listNotebookPackages, ms-toolsai.jupyter/installNotebookPackages, search]
+agent
+agents: ["Walidator metryk"]
+user-invocable: true
+---
+Jesteś recenzentem notebooków analitycznych w projekcie Nordvik. Sprawdzasz zgodność z regułami i zgłaszasz problemy. Nie poprawiasz notebooka.
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+My edit put a bare `agent` line into the YAML, which breaks the frontmatter. I'm fixing it by adding `agent` to the `tools` list. 
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="replace_string_in_file"><details>
+<summary>Tool use: **replace_string_in_file**</summary>
+
+Replacing 3 lines with 2 lines in `recenzent-notebookow.agent.md`
+
+**Input:**
+
+- filePath: `/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/recenzent-notebookow.agent.md`
+- newString:
+
+```
+ms-toolsai.jupyter/installNotebookPackages, search, agent]
+agents: ["Walidator metryk"]
+```
+
+- oldString:
+
+```
+ms-toolsai.jupyter/installNotebookPackages, search]
+agent
+agents: ["Walidator metryk"]
+```
+
+
+**Result:**
+
+```
+The following files were successfully edited:
+/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/recenzent-notebookow.agent.md
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **recenzent-notebookow.agent.md**</summary>
+
+@@ lines 4-5 @@
+
+```
+, agent]
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 4 todos
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="get_errors"><details>
+<summary>Tool use: **get_errors**</summary>
+
+Checked `analityk.agent.md`, `recenzent-notebookow.agent.md`, `walidator-metryk.agent.md`, `rozpoznanie-danych.agent.md`, 2 problems found
+
+**Input:**
+
+- filePaths:
+
+```
+[
+  "/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/recenzent-notebookow.agent.md",
+  "/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/analityk.agent.md",
+  "/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/walidator-metryk.agent.md",
+  "/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/rozpoznanie-danych.agent.md"
+]
+```
+
+
+**Result:**
+
+````
+<errors path="/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/analityk.agent.md">
+This code at line 18
+```
+2. Sprawdź definicje metryk w [docs/slownik-metryk.md](docs/slownik-metryk.md) i kontekst w [docs/nordvik-opis-firmy.md](docs/nordvik-opis-firmy.md).
+```
+has the problem reported:
+<compileError>
+File 'docs/slownik-metryk.md' not found at '~/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/docs/slownik-metryk.md'.
+</compileError>
+This code at line 18
+```
+2. Sprawdź definicje metryk w [docs/slownik-metryk.md](docs/slownik-metryk.md) i kontekst w [docs/nordvik-opis-firmy.md](docs/nordvik-opis-firmy.md).
+```
+has the problem reported:
+<compileError>
+File 'docs/nordvik-opis-firmy.md' not found at '~/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/docs/nordvik-opis-firmy.md'.
+</compileError>
+
+</errors>
+<errors path="/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/recenzent-notebookow.agent.md">
+No errors found
+</errors>
+<errors path="/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/walidator-metryk.agent.md">
+No errors found
+</errors>
+<errors path="/home/teamsharq/Desktop/infoshare-silkycoders-data-science-ai-1/.github/agents/rozpoznanie-danych.agent.md">
+No errors found
+</errors>
+````
+</details></tool-use>
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+Dodałem dwa subagenty i podłączyłem je do obu chatmodes.
+
+- `.github/agents/walidator-metryk.agent.md`: porównuje SQL lub kod z `docs/slownik-metryk.md`. Narzędzia: tylko odczyt i wyszukiwanie. Nie ma dostępu do bazy, więc sprawdza tekst SQL, a nie wynik zapytania.
+- `.github/agents/rozpoznanie-danych.agent.md`: opisuje schemat, nagłówki CSV i README. Czyta tylko kilka pierwszych wierszy plików danych.
+
+Oba są `user-invocable: false`, więc nie pojawiają się w liście agentów. Wywołują je tylko rodzice.
+
+- `.github/agents/analityk.agent.md`: dodany alias `agent`, `agents: ["Walidator metryk", "Rozpoznanie danych"]` i sekcja „Subagenty” z warunkami użycia.
+- `.github/agents/recenzent-notebookow.agent.md`: dodany alias `agent`, `agents: ["Walidator metryk"]` i krótka sekcja o użyciu.
+
+Dwie sprawy do decyzji:
+- W Analityku linki do `docs/...` są względne do `agents`, więc nie działają (błąd edytora). Poprawny cel to `../../docs/`. Nie zmieniłem tego, bo plik zmieniałeś ręcznie. Mogę poprawić.
+- Wcześniej wskazane narzędzia zapisu w Analityku (`postgresql-mcp/*`) i w Recenzencie (instalacja pakietów) nadal tam są. Nie zmieniałem ich bez Twojej zgody.
+
+_**Agent (copilot/claude-haiku-5.5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Completed: *Create validator subagent* (1/4)
+</details></tool-use>
