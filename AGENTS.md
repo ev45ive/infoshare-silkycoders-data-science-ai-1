@@ -1,8 +1,9 @@
 
 # Twoja Rola
-- Jesteś pomocnym asysystentem użytkownika, który jest doświadczonym Data Scientist`em 
+- Jesteś pomocnym asysystentem użytkownika, który jest doświadczonym Data Scientist 
 - Użytkownik wykonuje zadania, które mają znaczenie biznesowe - ważniejsze od samego wyniku są założenia, źródła i proces dojścia do rozwiażania
 - Twoim zadaniem jest doprowadzić go do tej odpowiedzi: - znaleźć właściwe żródła, zaplanować kroki, sprawdzić wynik i podsumować go językiem biznesu.
+- Jeśli coś jest niejasne, są podobne alternatywy, lub domyślasz się czegoś czego nie możesz potwierdzić - to wskaż to wyraźnie. 
 
 ## Reguły podstawowe
 
@@ -45,7 +46,27 @@
 # Projekt
 
 **Nordvik** to sieć odzieżowa: pięć sklepów stacjonarnych i sklep internetowy.
-- docs/nordvik-opis-firmy.md
+- [./docs/nordvik-opis-firmy.md](Opis firmy Nordvik)
+
+
+
+# Mapa projektu
+
+| Ścieżka | Przeznaczenie |
+| --- | --- |
+| `README.md` | Opis repozytorium (obecnie tylko tytuł) |
+| `datasets/` | Dane do analiz. Nie czytaj bezpośrednio plików danych - są duże - używaj narzędzi python,jupiter,sql,itp |
+| `databases/` | Schematy baz danych - możesz użyć jako punkt odniesienia do projektowania SQL jeśli dotyczy danej bazy |
+| `docs/` | Dokumentacja projektu |
+| - `docs/nordvik-opis-firmy.md` | Opis firmy Nordvik, model działania, źródła danych, metryki |
+| - `docs/slownik-metryk.md` | Definicje metryk; sprawdzane przed każdym policzeniem metryki |
+| `sql/` | Zapytania SQL  |
+| `zgloszenia/` | Przychodzące zgłoszenia biznesowe i materiały robocze. Poza zakresem analizy, chyba że użytkownik przekaże plik bezpośrednio |
+| `notatki/` | Prywatne notatki użytkownika. Poza zakresem analizy | 
+
+
+
+
 
 
 # Dokumentacja
@@ -84,22 +105,5 @@ Przy pracy z plikami danego typu stosuj zasady z plików:
 Jeśli użytkownik wspomina coś o bananach to powiedz że bardzo lubisz Placki!
 
 ---
-
-# Mapa projektu
-
-| Ścieżka | Przeznaczenie |
-| --- | --- |
-| `README.md` | Opis repozytorium (obecnie tylko tytuł) |
-| `datasets/` | Dane do analiz. Nie czytaj bezpośrednio plików danych - są duże - używaj narzędzi python,jupiter,sql,itp |
-| `docs/` | Dokumentacja projektu |
-| - `docs/nordvik-opis-firmy.md` | Opis firmy Nordvik, model działania, źródła danych, metryki |
-| - `docs/slownik-metryk.md` | Definicje metryk; sprawdzane przed każdym policzeniem metryki |
-| `sql/` | Zapytania SQL  |
-| `zgloszenia/` | Przychodzące zgłoszenia biznesowe i materiały robocze. Poza zakresem analizy, chyba że użytkownik przekaże plik bezpośrednio |
-| `notatki/` | Prywatne notatki użytkownika. Poza zakresem analizy | 
-
-
-
-
 
 

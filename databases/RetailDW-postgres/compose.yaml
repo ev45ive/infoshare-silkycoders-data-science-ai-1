@@ -1,0 +1,33 @@
+name: retaildw
+
+services:
+  postgres:
+    # Same image line as ds-ml-linux-setup (pgvector/pgvector:pg17); override with PG_IMAGE.
+    image: ${PG_IMAGE:-pgvector/pgvector:pg17}
+    restart: "no"
+    cpus: 2
+    mem_limit: 2g
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      RETAILDW_PASSWORD: ${RETAILDW_PASSWORD:?Set RETAILDW_PASSWORD in .env}
+      RETAILDW_RO_PASSWORD: ${RETAILDW_RO_PASSWORD:?Set RETAILDW_RO_PASSWORD in .env}
+    command: ["postgres", "-c", "shared_buffers=256MB", "-c", "work_mem=32MB"]
+    ports:
+      - "127.0.0.1:${PG_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # TCP check: during first-start initdb the server only listens on the unix socket.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pgdata:
