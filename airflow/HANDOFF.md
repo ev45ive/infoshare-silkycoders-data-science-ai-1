@@ -89,7 +89,7 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 | --- | --- | --- |
 | `airflow/src/bc01/data.py`: wczytanie danych „as of” (sekcja 3), agregacja tygodniowa, top N | ✅ | Filtr `Date < origin`, origin musi być poniedziałkiem. Tylko warstwa wspólna, nie pełny potok. |
 | `airflow/src/bc01/baseline.py`: B1 (średnia 4 tygodni x 4) | ✅ | Uproszczenie: brak zer przed startem serii i brak uzupełnień kalendarza z notebooka. Do zgodności z CSV w fazie 5. |
-| `airflow/src/bc01/calendar.py`: kalendarz sklepów (święta PL, niedziele handlowe, dni otwarcia tygodnia) | ✅ | Testy w `test_bc01_data_layer.py`, przechodzą. Reguła niedziel handlowych dla lat przed 2025 do potwierdzenia (Q-04). Zależność: pakiet `holidays`. |
+| `airflow/src/bc01/calendar.py`: kalendarz sklepów (święta PL, niedziele handlowe, dni otwarcia tygodnia) | ✅ | Testy w `test_bc01_data_layer.py`, przechodzą. Dane zaczynają się w 2025, więc reguła dla lat wcześniejszych nie ma wpływu (Q-04 zamknięte). Zależność: pakiet `holidays`. |
 | `airflow/src/bc01/panel.py`: panel tygodniowy model x lokalizacja, start serii, maska przed startem | ✅ | Testy w `test_bc01_data_layer.py`. |
 | `airflow/src/bc01/stockouts.py`: flagi podejrzenia braku towaru (port komórki 50) | ✅ | Test syntetyczny w `test_bc01_data_layer.py`. Brak jeszcze czyszczenia `YI`. |
 | `load_catalog` w `data.py` (modele, lokalizacje, kolekcja BASIC z `merch_plan`) | ✅ | Używane przez test zgodności z CSV. |
@@ -142,7 +142,7 @@ Legenda statusów: ✅ zrobione, ⏳ do zrobienia, ℹ️ ustalone (bez akcji do
 1. Przedział 80% jest na sumie 4 tygodni. Czy DAG ma też publikować przedziały tygodniowe?
 2. Widok w `reporting` dla wyników prognoz: dodać jako `V027`?
 3. Progi alarmu monitoringu (WAPE i bias): notebook i ticket ich nie podają. Obecnie w `airflow/config/bc01.yaml` są wartości TESTOWE: WAPE 0,30, bias 0,10. Użytkownik je zmieni później.
-4. Q-04: reguła niedziel handlowych (ostatnia niedziela sty/kwi/cze/sie, niedziela przed Wielkanocą, 3 niedziele przed 24 grudnia) jest stosowana przez notebook do wszystkich lat. Czy dotyczy także lat przed 2025?
+4. Q-04 zamknięte: dane zaczynają się w 2025, reguła niedziel handlowych dla wcześniejszych lat nie jest potrzebna.
 5. Pakiet `holidays` nie jest w obrazie Airflow (`apache/airflow:3.4.0`). Wybór: dodać `_PIP_ADDITIONAL_REQUIREMENTS` albo zbudować własny obraz. Decyzja użytkownika.
 
 Właściciel pytań Q-01…Q-03: użytkownik. Założenia tymczasowe: Q-01 tylko suma 4 tygodni; Q-02 brak migracji V027; Q-03 progi testowe z `bc01.yaml`.
